@@ -3,7 +3,7 @@ import { users } from '../mockupData/mockupData';
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(() => {
     if (typeof window === 'undefined') {
       return null;
@@ -33,8 +33,8 @@ export function AuthProvider({ children }) {
   const value = useMemo(() => ({ currentUser, login, logout }), [currentUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
   return useContext(AuthContext);
 }

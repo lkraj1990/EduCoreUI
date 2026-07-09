@@ -2,7 +2,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import AppRoutes from './routes/AppRoutes';
 
-function App() {
+const App = () => {
   return (
     <div className="app-shell">
       <main className="main-panel">

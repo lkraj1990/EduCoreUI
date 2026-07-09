@@ -1,6 +1,6 @@
 import { staffRows } from '../../mockupData/mockupData';
 
-function StaffPage() {
+const StaffPage = () => {
   return (
     <div className="card shadow-sm border-0">
       <div className="card-body">

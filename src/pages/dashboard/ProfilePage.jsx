@@ -1,4 +1,16 @@
-function ProfilePage() {
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+
+const ProfilePage = () => {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect students to their student profile page
+  if (currentUser?.role === 'student') {
+    navigate(`/student-profile/${encodeURIComponent(currentUser.name)}`);
+    return null;
+  }
+
   return (
     <div className="row justify-content-center">
       <div className="col-lg-8">
@@ -10,8 +22,16 @@ function ProfilePage() {
               <div className="col-md-6">
                 <div className="card border-0 bg-light h-100">
                   <div className="card-body">
-                    <h6 className="text-muted">Contact</h6>
-                    <p className="mb-0 fw-semibold">admin@educore.com</p>
+                    <h6 className="text-muted">Name</h6>
+                    <p className="mb-0 fw-semibold">{currentUser?.name}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="card border-0 bg-light h-100">
+                  <div className="card-body">
+                    <h6 className="text-muted">Email</h6>
+                    <p className="mb-0 fw-semibold">{currentUser?.email}</p>
                   </div>
                 </div>
               </div>
@@ -19,7 +39,15 @@ function ProfilePage() {
                 <div className="card border-0 bg-light h-100">
                   <div className="card-body">
                     <h6 className="text-muted">Role</h6>
-                    <p className="mb-0 fw-semibold">School Administrator</p>
+                    <p className="mb-0 fw-semibold">{currentUser?.role?.replace('-', ' ').toUpperCase()}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="card border-0 bg-light h-100">
+                  <div className="card-body">
+                    <h6 className="text-muted">Tenant</h6>
+                    <p className="mb-0 fw-semibold">{currentUser?.tenant}</p>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-function Footer() {
+const Footer = () => {
   return (
     <footer className="footer">
       <small className="text-muted">EduCoreUi © 2026</small>

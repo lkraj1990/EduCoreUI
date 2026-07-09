@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { tenantRows } from '../../mockupData/mockupData';
 
-function SuperAdminPage() {
+const SuperAdminPage = () => {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">

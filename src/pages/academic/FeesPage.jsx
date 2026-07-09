@@ -1,6 +1,6 @@
 import { feeRows } from '../../mockupData/mockupData';
 
-function FeesPage() {
+const FeesPage = () => {
   return (
     <div className="card shadow-sm border-0">
       <div className="card-body">

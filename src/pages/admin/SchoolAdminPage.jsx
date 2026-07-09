@@ -1,4 +1,4 @@
-function SchoolAdminPage() {
+const SchoolAdminPage = () => {
   return (
     <div>
       <h2 className="fw-bold mb-3">School Admin Dashboard</h2>

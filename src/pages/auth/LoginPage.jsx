@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-function LoginPage() {
+const LoginPage = () => {
   const [email, setEmail] = useState('superadmin@educore.com');
   const [password, setPassword] = useState('admin123');
   const [error, setError] = useState('');

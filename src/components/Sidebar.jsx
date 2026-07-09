@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { navItems } from '../mockupData/mockupData';
 
-function Sidebar() {
+const Sidebar = () => {
   const { currentUser } = useAuth();
 
   const visibleItems = navItems.filter((item) => {

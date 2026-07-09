@@ -1,4 +1,4 @@
-function PricingPage() {
+const PricingPage = () => {
   const plans = [
     { name: 'Free Trial', price: '$0', features: ['1 school', 'Basic dashboard', 'Email support'] },
     { name: 'Basic', price: '$29', features: ['10 staff', 'Student records', 'Attendance'] },

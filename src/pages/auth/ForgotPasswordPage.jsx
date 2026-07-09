@@ -1,4 +1,4 @@
-function ForgotPasswordPage() {
+const ForgotPasswordPage = () => {
   return (
     <div className="row justify-content-center">
       <div className="col-lg-5">

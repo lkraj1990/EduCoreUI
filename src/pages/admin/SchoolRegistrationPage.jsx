@@ -1,4 +1,4 @@
-function SchoolRegistrationPage() {
+const SchoolRegistrationPage = () => {
   const requests = [
     { school: 'North Star Academy', admin: 'Ayesha Khan', plan: 'Premium', status: 'Pending' },
     { school: 'Lakeside International', admin: 'Sameer Rao', plan: 'Enterprise', status: 'Pending' },

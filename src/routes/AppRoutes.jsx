@@ -10,6 +10,7 @@ import TenantManagementPage from '../pages/admin/TenantManagementPage';
 import SchoolRegistrationPage from '../pages/admin/SchoolRegistrationPage';
 import SchoolAdminPage from '../pages/admin/SchoolAdminPage';
 import StudentPage from '../pages/academic/StudentPage';
+import StudentProfilePage from '../pages/student/StudentProfilePage';
 import StaffPage from '../pages/academic/StaffPage';
 import AttendancePage from '../pages/academic/AttendancePage';
 import FeesPage from '../pages/academic/FeesPage';
@@ -23,7 +24,7 @@ import ProfilePage from '../pages/dashboard/ProfilePage';
 import AccessDeniedPage from '../pages/shared/AccessDeniedPage';
 import ProtectedRoute from './ProtectedRoute';
 
-function AppRoutes() {
+const AppRoutes = () => {
   const { currentUser } = useAuth();
 
   return (
@@ -37,6 +38,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute currentUser={currentUser} allowedRoles={['super-admin', 'school-admin', 'teacher', 'student', 'parent']} />}>
         <Route path="/home" element={<HomePage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/student-profile/:studentId" element={<StudentProfilePage />} />
       </Route>
 
       <Route element={<ProtectedRoute currentUser={currentUser} allowedRoles={['super-admin']} />}>

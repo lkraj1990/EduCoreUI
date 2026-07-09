@@ -1,4 +1,4 @@
-function ParentPortalPage() {
+const ParentPortalPage = () => {
   return (
     <div className="card shadow-sm border-0 p-4">
       <h2 className="fw-bold mb-3">Parent Portal</h2>
