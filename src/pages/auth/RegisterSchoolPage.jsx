@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const RegisterSchoolPage = () => {
   return (
     <div className="card shadow-sm border-0 p-4">
@@ -9,8 +11,27 @@ const RegisterSchoolPage = () => {
           <input className="form-control" placeholder="Bright Future School" />
         </div>
         <div className="col-md-6">
+          <label className="form-label">Admin Mobile Number</label>
+          <input className="form-control" type="tel" placeholder="+91 98765 43210" />
+        </div>
+        <div className="col-md-6">
           <label className="form-label">Admin Email</label>
           <input className="form-control" placeholder="admin@school.com" />
+        </div>
+        <div className="col-md-6">
+          <label className="form-label">Google Location (URL or Lat-Long)</label>
+          <input
+            className="form-control"
+            placeholder="https://maps.google.com/... or 12.9716, 77.5946"
+          />
+        </div>
+        <div className="col-12">
+          <label className="form-label">School Address</label>
+          <textarea
+            className="form-control"
+            rows="3"
+            placeholder="Enter complete school address"
+          />
         </div>
         <div className="col-md-6">
           <label className="form-label">Plan</label>
@@ -20,6 +41,11 @@ const RegisterSchoolPage = () => {
             <option>Standard</option>
             <option>Premium</option>
           </select>
+          <div className="mt-2">
+            <Link to="/register-school/plan-details" className="link-primary text-decoration-none fw-semibold">
+              View Plan Details
+            </Link>
+          </div>
         </div>
         <div className="col-md-6">
           <label className="form-label">Custom Domain</label>

@@ -51,12 +51,20 @@ const Header = () => {
 
   return (
     <header className="topbar">
-      <div>
-        <h4 className="mb-0">School ERP Starter UI</h4>
-        <div className="small text-muted">{currentUser ? `${currentUser.name} • ${currentUser.role.replace('-', ' ')}` : 'Guest'}</div>
+      <div className="topbar-brand-wrap">
+        <div className="topbar-logo" aria-label="EC logo" role="img">
+          <span className="topbar-logo-chip">EC</span>
+        </div>
+        <div>
+          <h4 className="topbar-title">EduCoreUi Control Center</h4>
+          <div className="topbar-subtitle">
+            <span>{currentUser ? currentUser.name : 'Guest User'}</span>
+            <span className="status-pill">{currentUser ? currentUser.role.replace('-', ' ') : 'guest'}</span>
+          </div>
+        </div>
       </div>
 
-      <nav className="topbar-nav">
+      <nav className="topbar-nav" aria-label="Primary">
         {visibleItems.map((item) => (
           <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             {item.to === '/' && currentUser ? 'Login' : item.label}

@@ -2,12 +2,15 @@ import { Routes, Route } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterSchoolPage from '../pages/auth/RegisterSchoolPage';
+import PlanDetailsPage from '../pages/auth/PlanDetailsPage';
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import PricingPage from '../pages/auth/PricingPage';
 import HomePage from '../pages/dashboard/HomePage';
 import SuperAdminPage from '../pages/admin/SuperAdminPage';
 import TenantManagementPage from '../pages/admin/TenantManagementPage';
+import AddTenantPage from '../pages/admin/AddTenantPage';
 import SchoolRegistrationPage from '../pages/admin/SchoolRegistrationPage';
+import SchoolRegistrationDetailsPage from '../pages/admin/SchoolRegistrationDetailsPage';
 import SchoolAdminPage from '../pages/admin/SchoolAdminPage';
 import StudentPage from '../pages/academic/StudentPage';
 import StudentProfilePage from '../pages/student/StudentProfilePage';
@@ -31,6 +34,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<LoginPage />} />
       <Route path="/register-school" element={<RegisterSchoolPage />} />
+      <Route path="/register-school/plan-details" element={<PlanDetailsPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/access-denied" element={<AccessDeniedPage currentUser={currentUser} />} />
@@ -44,7 +48,9 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute currentUser={currentUser} allowedRoles={['super-admin']} />}>
         <Route path="/super-admin" element={<SuperAdminPage />} />
         <Route path="/tenant-management" element={<TenantManagementPage />} />
+        <Route path="/tenant-management/add" element={<AddTenantPage />} />
         <Route path="/school-registration" element={<SchoolRegistrationPage />} />
+        <Route path="/school-registration/:schoolId" element={<SchoolRegistrationDetailsPage />} />
       </Route>
 
       <Route element={<ProtectedRoute currentUser={currentUser} allowedRoles={['school-admin']} />}>

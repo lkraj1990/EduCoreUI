@@ -3,22 +3,14 @@ import { tenantRows } from '../../mockupData/mockupData';
 
 const initialState = {
   tenants: tenantRows,
-  showModal: false,
 };
 
 const tenantSlice = createSlice({
   name: 'tenants',
   initialState,
   reducers: {
-    openModal: (state) => {
-      state.showModal = true;
-    },
-    closeModal: (state) => {
-      state.showModal = false;
-    },
     addTenant: (state, action) => {
       state.tenants.push(action.payload);
-      state.showModal = false;
     },
     deactivateTenant: (state, action) => {
       const tenant = state.tenants.find((t) => t.name === action.payload);
@@ -35,5 +27,5 @@ const tenantSlice = createSlice({
   },
 });
 
-export const { openModal, closeModal, addTenant, deactivateTenant, updateTenant } = tenantSlice.actions;
+export const { addTenant, deactivateTenant, updateTenant } = tenantSlice.actions;
 export default tenantSlice.reducer;

@@ -86,3 +86,32 @@ export const feeRows = [
   { student: 'Mira Patel', due: '$280', paid: '$180', balance: '$100' },
   { student: 'Zaid Khan', due: '$400', paid: '$300', balance: '$100' },
 ];
+
+export const schoolRegistrationRequests = [
+  {
+    id: 'north-star-academy',
+    school: 'North Star Academy',
+    admin: 'Ayesha Khan',
+    adminEmail: 'admin@northstar.edu',
+    adminMobile: '+91 98111 22334',
+    plan: 'Premium',
+    status: 'Pending',
+    location: 'Gurugram, Haryana',
+    strength: 1450,
+    board: 'CBSE',
+    submittedOn: '08 Jul 2026',
+  },
+  {
+    id: 'lakeside-international',
+    school: 'Lakeside International',
+    admin: 'Sameer Rao',
+    adminEmail: 'admin@lakeside.edu',
+    adminMobile: '+91 98222 44556',
+    plan: 'Enterprise',
+    status: 'Pending',
+    location: 'Pune, Maharashtra',
+    strength: 2100,
+    board: 'ICSE',
+    submittedOn: '09 Jul 2026',
+  },
+];

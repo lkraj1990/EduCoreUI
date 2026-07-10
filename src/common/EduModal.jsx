@@ -1,6 +1,16 @@
 import { useState } from 'react';
 
-const EduModal = ({ title, isOpen, onClose, onSubmit, fields, submitButtonText = 'Submit', cancelButtonText = 'Cancel' }) => {
+const EduModal = ({
+  title,
+  isOpen,
+  onClose,
+  onSubmit,
+  fields,
+  submitButtonText = 'Submit',
+  cancelButtonText = 'Cancel',
+  size = 'md',
+  dialogClassName = '',
+}) => {
   /**
    * EduModal Component - Dynamic Modal for Form Handling
    * 
@@ -103,9 +113,11 @@ const EduModal = ({ title, isOpen, onClose, onSubmit, fields, submitButtonText =
 
   if (!isOpen) return null;
 
+  const sizeClass = size === 'sm' ? 'modal-sm' : size === 'lg' ? 'modal-lg' : size === 'xl' ? 'modal-xl' : '';
+
   return (
     <div className="modal show d-block" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-      <div className="modal-dialog modal-dialog-centered">
+      <div className={`modal-dialog modal-dialog-centered ${sizeClass} ${dialogClassName}`.trim()}>
         <div className="modal-content">
           <div className="modal-header">
             <h5 className="modal-title">{title}</h5>

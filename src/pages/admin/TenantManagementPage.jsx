@@ -1,54 +1,12 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { openModal, closeModal, addTenant, deactivateTenant } from '../../redux/slices/tenantSlice';
+import { useNavigate } from 'react-router-dom';
+import { deactivateTenant } from '../../redux/slices/tenantSlice';
 import EduGrid from '../../common/EduGrid';
-import EduModal from '../../common/EduModal';
 
 const TenantManagementPage = () => {
   const dispatch = useDispatch();
-  const { tenants, showModal } = useSelector((state) => state.tenants);
-
-  // Define modal fields for tenant
-  const modalFields = [
-    {
-      name: 'name',
-      label: 'School Name',
-      type: 'text',
-      placeholder: 'Enter school name',
-      required: true,
-    },
-    {
-      name: 'domain',
-      label: 'Custom Domain',
-      type: 'text',
-      placeholder: 'e.g., bright.edu',
-      required: true,
-    },
-    {
-      name: 'plan',
-      label: 'Subscription Plan',
-      type: 'select',
-      required: true,
-      options: [
-        { value: 'Free Trial', label: 'Free Trial' },
-        { value: 'Basic', label: 'Basic' },
-        { value: 'Standard', label: 'Standard' },
-        { value: 'Premium', label: 'Premium' },
-        { value: 'Enterprise', label: 'Enterprise' },
-      ],
-    },
-    {
-      name: 'status',
-      label: 'Status',
-      type: 'select',
-      required: true,
-      options: [
-        { value: 'Active', label: 'Active' },
-        { value: 'Pending', label: 'Pending' },
-        { value: 'Suspended', label: 'Suspended' },
-        { value: 'Inactive', label: 'Inactive' },
-      ],
-    },
-  ];
+  const navigate = useNavigate();
+  const { tenants } = useSelector((state) => state.tenants);
 
   // Define grid columns
   const columns = [
@@ -92,34 +50,27 @@ const TenantManagementPage = () => {
     },
   ];
 
-  const handleModalSubmit = (data) => {
-    dispatch(addTenant(data));
-  };
-
   return (
-    <div className="card shadow-sm border-0">
-      <div className="card-body">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h2 className="fw-bold mb-0">Tenant Management</h2>
-          <button className="btn btn-primary btn-sm" onClick={() => dispatch(openModal())}>
-            Add Tenant
-          </button>
+    <div className="card tenant-page-card shadow-sm border-0">
+      <div className="card-body p-4 p-lg-5">
+        <div className="tenant-toolbar mb-4">
+          <div>
+            <h2 className="fw-bold mb-1">Tenant Management</h2>
+            <p className="text-muted mb-0">Manage all onboarded schools, plans, and lifecycle status.</p>
+          </div>
+
+          <div className="d-flex align-items-center gap-2">
+            <span className="tenant-count-pill">{tenants.length} Tenants</span>
+            <button className="btn btn-primary btn-sm" onClick={() => navigate('/tenant-management/add')}>
+              Add Tenant
+            </button>
+          </div>
         </div>
 
-        {/* Use Dynamic Grid */}
-        <EduGrid columns={columns} data={tenants} actions={actions} />
+        <div className="tenant-grid-shell">
+          <EduGrid columns={columns} data={tenants} actions={actions} />
+        </div>
       </div>
-
-      {/* Use Dynamic Modal */}
-      <EduModal
-        title="Add New Tenant"
-        isOpen={showModal}
-        onClose={() => dispatch(closeModal())}
-        onSubmit={handleModalSubmit}
-        fields={modalFields}
-        submitButtonText="Add Tenant"
-        cancelButtonText="Cancel"
-      />
     </div>
   );
 }

@@ -4,8 +4,12 @@ import { tenantRows } from '../../mockupData/mockupData';
 const SuperAdminPage = () => {
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="fw-bold mb-0">Super Admin Dashboard</h2>
+      <div className="page-control-head mb-4">
+        <div>
+          <span className="page-control-kicker">Control Center</span>
+          <h2 className="page-control-title mb-1">Super Admin Dashboard</h2>
+          <p className="page-control-subtitle mb-0">Monitor tenants, approvals, and platform health from one command desk.</p>
+        </div>
         <Link className="btn btn-outline-primary btn-sm" to="/settings">White Label Settings</Link>
       </div>
       <div className="row g-3 mb-4">
