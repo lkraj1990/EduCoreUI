@@ -12,7 +12,7 @@ const Header = () => {
     const role = currentUser?.role;
 
     if (!role) {
-      return ['/register-school','/forgot-password','/pricing'].includes(item.to);
+      return ['/', '/register-school', '/forgot-password', '/pricing'].includes(item.to);
     }
 
     if (role === 'super-admin') {
@@ -67,49 +67,41 @@ const Header = () => {
       <nav className="topbar-nav" aria-label="Primary">
         {visibleItems.map((item) => (
           <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-            {item.to === '/' && currentUser ? 'Login' : item.label}
+            {item.label}
           </NavLink>
         ))}
       </nav>
 
       <div className="d-flex align-items-center gap-2">
-        <div className="profile-menu position-relative">
-          <button className="profile-trigger" onClick={() => setIsMenuOpen((prev) => !prev)}>
-            <span className="profile-avatar">{currentUser ? currentUser.name.charAt(0).toUpperCase() : 'G'}</span>
-          </button>
+        {currentUser ? (
+          <div className="profile-menu position-relative">
+            <button className="profile-trigger" onClick={() => setIsMenuOpen((prev) => !prev)}>
+              <span className="profile-avatar">{currentUser.name.charAt(0).toUpperCase()}</span>
+            </button>
 
-          {isMenuOpen && (
-            <div className="profile-dropdown">
-              {currentUser ? (
-                <>
-                  <div className="dropdown-header">
-                    <strong>{currentUser.name}</strong>
-                    <div className="small text-muted">{currentUser.email}</div>
-                  </div>
-                  <button className="dropdown-item" onClick={() => handleMenuAction('/profile')}>
-                    My Profile
-                  </button>
-                  <button className="dropdown-item" onClick={() => handleMenuAction('/settings')}>
-                    Settings
-                  </button>
-                  <button className="dropdown-item text-danger" onClick={handleLogout}>
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="dropdown-header">
-                    <strong>Guest</strong>
-                    <div className="small text-muted">Sign in to access your account</div>
-                  </div>
-                  <button className="dropdown-item" onClick={() => handleMenuAction('/')}>
-                    Login
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-        </div>
+            {isMenuOpen && (
+              <div className="profile-dropdown">
+                <div className="dropdown-header">
+                  <strong>{currentUser.name}</strong>
+                  <div className="small text-muted">{currentUser.email}</div>
+                </div>
+                <button className="dropdown-item" onClick={() => handleMenuAction('/profile')}>
+                  My Profile
+                </button>
+                <button className="dropdown-item" onClick={() => handleMenuAction('/settings')}>
+                  Settings
+                </button>
+                <button className="dropdown-item text-danger" onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button type="button" className="btn btn-primary btn-sm topbar-login-btn" onClick={() => navigate('/login')}>
+            Login
+          </button>
+        )}
       </div>
     </header>
   );

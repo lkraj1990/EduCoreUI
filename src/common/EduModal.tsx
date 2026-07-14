@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const EduModal = ({
   title,
@@ -6,8 +6,13 @@ const EduModal = ({
   onClose,
   onSubmit,
   fields,
+  initialValues = {},
+  description = '',
   submitButtonText = 'Submit',
   cancelButtonText = 'Cancel',
+  submitButtonVariant = 'primary',
+  isSubmitting = false,
+  errorMessage = '',
   size = 'md',
   dialogClassName = '',
 }) => {
@@ -34,13 +39,12 @@ const EduModal = ({
    * @param {string} cancelButtonText - Text for cancel button
    */
 
-  const [formData, setFormData] = useState(initializeFormData(fields));
-  const [errors, setErrors] = useState({});
-
-  function initializeFormData(fields) {
+  const initializeFormData = (currentFields, seedValues = {}) => {
     const data = {};
-    fields.forEach((field) => {
-      if (field.type === 'multiselect') {
+    currentFields.forEach((field) => {
+      if (seedValues[field.name] !== undefined) {
+        data[field.name] = seedValues[field.name];
+      } else if (field.type === 'multiselect') {
         data[field.name] = [];
       } else if (field.type === 'checkbox') {
         data[field.name] = false;
@@ -49,7 +53,17 @@ const EduModal = ({
       }
     });
     return data;
-  }
+  };
+
+  const [formData, setFormData] = useState(initializeFormData(fields, initialValues));
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(initializeFormData(fields, initialValues));
+      setErrors({});
+    }
+  }, [fields, initialValues, isOpen]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -98,11 +112,10 @@ const EduModal = ({
       return;
     }
     onSubmit(formData);
-    resetForm();
   };
 
   const resetForm = () => {
-    setFormData(initializeFormData(fields));
+    setFormData(initializeFormData(fields, initialValues));
     setErrors({});
   };
 
@@ -126,6 +139,8 @@ const EduModal = ({
 
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
+              {description && <p className="text-muted">{description}</p>}
+              {errorMessage && <div className="alert alert-danger py-2">{errorMessage}</div>}
               {fields.map((field) => (
                 <div key={field.name} className="mb-3">
                   <label className="form-label">
@@ -147,6 +162,7 @@ const EduModal = ({
                       {errors[field.name] && (
                         <div className="invalid-feedback d-block">{errors[field.name]}</div>
                       )}
+                      {field.helpText && !errors[field.name] && <div className="form-text">{field.helpText}</div>}
                     </>
                   )}
 
@@ -164,6 +180,7 @@ const EduModal = ({
                       {errors[field.name] && (
                         <div className="invalid-feedback d-block">{errors[field.name]}</div>
                       )}
+                      {field.helpText && !errors[field.name] && <div className="form-text">{field.helpText}</div>}
                     </>
                   )}
 
@@ -187,6 +204,7 @@ const EduModal = ({
                       {errors[field.name] && (
                         <div className="invalid-feedback d-block">{errors[field.name]}</div>
                       )}
+                      {field.helpText && !errors[field.name] && <div className="form-text">{field.helpText}</div>}
                     </>
                   )}
 
@@ -258,11 +276,11 @@ const EduModal = ({
             </div>
 
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={handleClose}>
+                <button type="button" className="btn btn-secondary" onClick={handleClose} disabled={isSubmitting}>
                 {cancelButtonText}
               </button>
-              <button type="submit" className="btn btn-primary">
-                {submitButtonText}
+                <button type="submit" className={`btn btn-${submitButtonVariant}`} disabled={isSubmitting}>
+                  {isSubmitting ? 'Please wait...' : submitButtonText}
               </button>
             </div>
           </form>

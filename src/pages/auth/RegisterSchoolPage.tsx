@@ -1,11 +1,35 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import PlanSelect from '../../common/PlanSelect';
+import usePlans from '../../hooks/usePlans';
 
 const RegisterSchoolPage = () => {
+  const [searchParams] = useSearchParams();
+  const [selectedPlan, setSelectedPlan] = useState('');
+  const { data: plans = [], loading: plansLoading } = usePlans();
+
+  useEffect(() => {
+    const requestedPlan = searchParams.get('plan');
+
+    if (!requestedPlan || plans.length === 0) {
+      return;
+    }
+
+    const matchingPlan = plans.find((plan) => plan.name.toLowerCase() === requestedPlan.toLowerCase());
+    if (matchingPlan) {
+      setSelectedPlan(matchingPlan.name);
+    }
+  }, [plans, searchParams]);
+
+  const handlePlanChange = (event) => {
+    setSelectedPlan(event.target.value);
+  };
+
   return (
     <div className="card shadow-sm border-0 p-4">
       <h2 className="fw-bold mb-3">Register School</h2>
       <p className="text-muted">Onboard a new school into the EduCoreUi SaaS platform.</p>
-      <form className="row g-3">
+      <form className="row g-3" onSubmit={(event) => event.preventDefault()}>
         <div className="col-md-6">
           <label className="form-label">School Name</label>
           <input className="form-control" placeholder="Bright Future School" />
@@ -16,7 +40,7 @@ const RegisterSchoolPage = () => {
         </div>
         <div className="col-md-6">
           <label className="form-label">Admin Email</label>
-          <input className="form-control" placeholder="admin@school.com" />
+          <input className="form-control" type="email" placeholder="admin@school.com" />
         </div>
         <div className="col-md-6">
           <label className="form-label">Google Location (URL or Lat-Long)</label>
@@ -34,18 +58,17 @@ const RegisterSchoolPage = () => {
           />
         </div>
         <div className="col-md-6">
-          <label className="form-label">Plan</label>
-          <select className="form-select">
-            <option>Free Trial</option>
-            <option>Basic</option>
-            <option>Standard</option>
-            <option>Premium</option>
-          </select>
-          <div className="mt-2">
-            <Link to="/register-school/plan-details" className="link-primary text-decoration-none fw-semibold">
-              View Plan Details
-            </Link>
-          </div>
+          <PlanSelect
+            value={selectedPlan}
+            onChange={handlePlanChange}
+            plans={plans}
+            disabled={plansLoading}
+            detailsLink={(
+              <Link to="/register-school/plan-details" className="link-primary text-decoration-none fw-semibold">
+                View Plan Details
+              </Link>
+            )}
+          />
         </div>
         <div className="col-md-6">
           <label className="form-label">Custom Domain</label>

@@ -24,6 +24,18 @@ const EduGrid = ({ columns, data, onRowClick, actions }) => {
     return <div className="alert alert-info">No data available</div>;
   }
 
+  const renderActionContent = (action) => {
+    if (action.renderIcon) {
+      return action.renderIcon();
+    }
+
+    if (action.icon) {
+      return <span aria-hidden="true">{action.icon}</span>;
+    }
+
+    return action.label;
+  };
+
   return (
     <div className="table-responsive">
       <table className="table table-hover align-middle mb-0">
@@ -40,6 +52,10 @@ const EduGrid = ({ columns, data, onRowClick, actions }) => {
         </thead>
         <tbody>
           {data.map((row, rowIndex) => (
+            (() => {
+              const visibleActions = actions ? actions.filter((action) => action.isVisible ? action.isVisible(row) : true) : [];
+
+              return (
             <tr
               key={rowIndex}
               onClick={() => onRowClick && onRowClick(row)}
@@ -67,25 +83,30 @@ const EduGrid = ({ columns, data, onRowClick, actions }) => {
                     : row[column.key]}
                 </td>
               ))}
-              {actions && actions.length > 0 && (
+              {visibleActions.length > 0 && (
                 <td>
                   <div className="d-flex gap-1">
-                    {actions.map((action, actionIndex) => (
+                    {visibleActions.map((action, actionIndex) => (
                       <button
                         key={actionIndex}
-                        className={`btn btn-sm ${action.className || 'btn-outline-primary'}`}
+                        type="button"
+                        className={`btn btn-sm ${action.iconOnly ? 'd-inline-flex align-items-center justify-content-center' : ''} ${action.className || 'btn-outline-primary'}`.trim()}
+                        title={action.tooltip || action.label}
+                        aria-label={action.ariaLabel || action.tooltip || action.label}
                         onClick={(e) => {
                           e.stopPropagation();
                           action.onClick(row);
                         }}
                       >
-                        {action.label}
+                        {renderActionContent(action)}
                       </button>
                     ))}
                   </div>
                 </td>
               )}
             </tr>
+              );
+            })()
           ))}
         </tbody>
       </table>

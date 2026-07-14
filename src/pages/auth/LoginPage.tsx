@@ -5,13 +5,14 @@ import { useAuth } from '../../context/AuthContext';
 const LoginPage = () => {
   const [email, setEmail] = useState('superadmin@educore.com');
   const [password, setPassword] = useState('admin123');
+  const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const result = login(email, password);
+    const result = login(email, password, token);
 
     if (!result.success) {
       setError(result.error);
@@ -36,6 +37,16 @@ const LoginPage = () => {
               <div className="mb-3">
                 <label className="form-label">Password</label>
                 <input type="password" className="form-control" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" />
+              </div>
+              <div className="mb-3">
+                <label className="form-label">Bearer Token <span className="text-muted small">(optional)</span></label>
+                <input
+                  className="form-control"
+                  value={token}
+                  onChange={(event) => setToken(event.target.value)}
+                  placeholder="Paste API token if secured endpoints require it"
+                />
+                <div className="form-text">Stored locally and attached to API requests as an Authorization header.</div>
               </div>
               {error && <div className="alert alert-danger py-2">{error}</div>}
               <div className="d-flex justify-content-between align-items-center mb-3">

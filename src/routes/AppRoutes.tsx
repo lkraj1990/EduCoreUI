@@ -9,6 +9,7 @@ import HomePage from '../pages/dashboard/HomePage';
 import SuperAdminPage from '../pages/admin/SuperAdminPage';
 import TenantManagementPage from '../pages/admin/TenantManagementPage';
 import AddTenantPage from '../pages/admin/AddTenantPage';
+import CreateTenantSubscriptionPage from '../pages/admin/CreateTenantSubscriptionPage';
 import SchoolRegistrationPage from '../pages/admin/SchoolRegistrationPage';
 import SchoolRegistrationDetailsPage from '../pages/admin/SchoolRegistrationDetailsPage';
 import SchoolAdminPage from '../pages/admin/SchoolAdminPage';
@@ -32,7 +33,8 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route path="/register-school" element={<RegisterSchoolPage />} />
       <Route path="/register-school/plan-details" element={<PlanDetailsPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -49,6 +51,7 @@ const AppRoutes = () => {
         <Route path="/super-admin" element={<SuperAdminPage />} />
         <Route path="/tenant-management" element={<TenantManagementPage />} />
         <Route path="/tenant-management/add" element={<AddTenantPage />} />
+        <Route path="/tenant-management/:tenantLocalId/subscription/create" element={<CreateTenantSubscriptionPage />} />
         <Route path="/school-registration" element={<SchoolRegistrationPage />} />
         <Route path="/school-registration/:schoolId" element={<SchoolRegistrationDetailsPage />} />
       </Route>

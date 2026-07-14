@@ -42,7 +42,8 @@ export const users = [
 ];
 
 export const navItems = [
-  { to: '/', label: 'Login' },
+  { to: '/', label: 'Home' },
+  { to: '/login', label: 'Login' },
   { to: '/home', label: 'Home' },
   { to: '/register-school', label: 'Register School' },
   { to: '/forgot-password', label: 'Forgot Password' },
@@ -64,9 +65,42 @@ export const navItems = [
 ];
 
 export const tenantRows = [
-  { name: 'Bright Future School', plan: 'Premium', status: 'Active', domain: 'bright.edu' },
-  { name: 'Green Valley Academy', plan: 'Enterprise', status: 'Pending', domain: 'greenvalley.edu' },
-  { name: 'Ocean View High', plan: 'Basic', status: 'Active', domain: 'oceanview.edu' },
+  {
+    name: 'Bright Future School',
+    plan: 'Premium',
+    status: 'Active',
+    domain: 'bright.edu',
+    tenantId: '',
+    subscriptionId: '',
+    planId: '',
+    subscriptionStatus: 'Not Linked',
+    billingCycle: 'monthly',
+    autoRenew: true,
+  },
+  {
+    name: 'Green Valley Academy',
+    plan: 'Enterprise',
+    status: 'Pending',
+    domain: 'greenvalley.edu',
+    tenantId: '',
+    subscriptionId: '',
+    planId: '',
+    subscriptionStatus: 'Not Linked',
+    billingCycle: 'monthly',
+    autoRenew: true,
+  },
+  {
+    name: 'Ocean View High',
+    plan: 'Basic',
+    status: 'Active',
+    domain: 'oceanview.edu',
+    tenantId: '',
+    subscriptionId: '',
+    planId: '',
+    subscriptionStatus: 'Not Linked',
+    billingCycle: 'monthly',
+    autoRenew: true,
+  },
 ];
 
 export const studentRows = [

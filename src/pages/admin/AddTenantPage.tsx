@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import PlanSelect from '../../common/PlanSelect';
+import usePlans from '../../hooks/usePlans';
 import { addTenant } from '../../redux/slices/tenantSlice';
 
 const initialFormData = {
@@ -8,6 +10,7 @@ const initialFormData = {
   domain: '',
   plan: 'Basic',
   status: 'Active',
+  tenantId: '',
 };
 
 const AddTenantPage = () => {
@@ -15,6 +18,7 @@ const AddTenantPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
+  const { data: plans = [], loading: plansLoading } = usePlans();
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -43,7 +47,15 @@ const AddTenantPage = () => {
       return;
     }
 
-    dispatch(addTenant(formData));
+    const selectedPlan = plans.find((plan) => plan.name === formData.plan);
+
+    dispatch(addTenant({
+      ...formData,
+      planId: selectedPlan?.id || '',
+      subscriptionStatus: 'Not Linked',
+      billingCycle: selectedPlan?.billingCycleLabel || 'monthly',
+      autoRenew: true,
+    }));
     navigate('/tenant-management');
   };
 
@@ -88,14 +100,27 @@ const AddTenantPage = () => {
           </div>
 
           <div className="col-md-6">
-            <label className="form-label">Subscription Plan</label>
-            <select name="plan" className="form-select" value={formData.plan} onChange={handleChange}>
-              <option value="Free Trial">Free Trial</option>
-              <option value="Basic">Basic</option>
-              <option value="Standard">Standard</option>
-              <option value="Premium">Premium</option>
-              <option value="Enterprise">Enterprise</option>
-            </select>
+            <label className="form-label">Backend Tenant ID <span className="text-muted small">(optional)</span></label>
+            <input
+              type="text"
+              name="tenantId"
+              className="form-control"
+              placeholder="UUID used by the subscription API"
+              value={formData.tenantId}
+              onChange={handleChange}
+            />
+            <div className="form-text">Provide this when the tenant already exists in the backend.</div>
+          </div>
+
+          <div className="col-md-6">
+            <PlanSelect
+              name="plan"
+              label="Subscription Plan"
+              value={formData.plan}
+              onChange={handleChange}
+              plans={plans}
+              disabled={plansLoading}
+            />
           </div>
 
           <div className="col-md-6">
