@@ -7,6 +7,7 @@ import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import PricingPage from '../pages/auth/PricingPage';
 import HomePage from '../pages/dashboard/HomePage';
 import SuperAdminPage from '../pages/admin/SuperAdminPage';
+import CreatePlanPage from '../pages/admin/CreatePlanPage';
 import TenantManagementPage from '../pages/admin/TenantManagementPage';
 import AddTenantPage from '../pages/admin/AddTenantPage';
 import CreateTenantSubscriptionPage from '../pages/admin/CreateTenantSubscriptionPage';
@@ -26,60 +27,94 @@ import StudentPortalPage from '../pages/student/StudentPortalPage';
 import ParentPortalPage from '../pages/parent/ParentPortalPage';
 import ProfilePage from '../pages/dashboard/ProfilePage';
 import AccessDeniedPage from '../pages/shared/AccessDeniedPage';
+import ModuleDescriptionPage from '../pages/shared/ModuleDescriptionPage';
 import ProtectedRoute from './ProtectedRoute';
+import { BaseLinks, Roles } from '../components/LinkRowData';
+
+const activeRoleLinks = BaseLinks.filter((entry) => entry.IsActive);
+
+const allAuthenticatedRoles = activeRoleLinks
+  .filter((entry) => entry.RoleName !== Roles.Guest)
+  .map((entry) => entry.RoleName);
+
+const resolveAllowedRoles = (authPath: string) => {
+  const normalizedPath = authPath.toLowerCase();
+
+  return activeRoleLinks
+    .filter((entry) => entry.RoleName !== Roles.Guest)
+    .filter((entry) => entry.Links.some((link) => {
+      const normalizedLink = link.Link.toLowerCase();
+
+      if (normalizedPath === normalizedLink) {
+        return true;
+      }
+
+      if (normalizedPath.startsWith(`${normalizedLink}/`) && normalizedLink !== '/') {
+        return true;
+      }
+
+      return false;
+    }))
+    .map((entry) => entry.RoleName);
+};
+
+const publicRoutes = [
+  { path: '/', element: <HomePage /> },
+  { path: '/home', element: <HomePage /> },
+  { path: '/login', element: <LoginPage /> },
+  { path: '/register-school', element: <RegisterSchoolPage /> },
+  { path: '/register-school/plan-details', element: <PlanDetailsPage /> },
+  { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/pricing', element: <PricingPage /> },
+  { path: '/plans', element: <PricingPage /> },
+  { path: '/erp-modules/:moduleId', element: <ModuleDescriptionPage /> },
+];
+
+const protectedRoutes = [
+  { path: '/home', element: <HomePage />, allowedRoles: allAuthenticatedRoles },
+  { path: '/profile', element: <ProfilePage />, allowedRoles: allAuthenticatedRoles },
+  { path: '/student-profile/:studentId', element: <StudentProfilePage />, allowedRoles: allAuthenticatedRoles },
+  { path: '/super-admin', element: <SuperAdminPage />, allowedRoles: resolveAllowedRoles('/super-admin') },
+  { path: '/super-admin/create-plan', element: <CreatePlanPage />, allowedRoles: resolveAllowedRoles('/super-admin') },
+  { path: '/tenant-management', element: <TenantManagementPage />, allowedRoles: resolveAllowedRoles('/tenant-management') },
+  { path: '/tenant-management/add', element: <AddTenantPage />, allowedRoles: resolveAllowedRoles('/tenant-management') },
+  { path: '/tenant-management/:tenantLocalId/subscription/create', element: <CreateTenantSubscriptionPage />, allowedRoles: resolveAllowedRoles('/tenant-management') },
+  { path: '/school-registration', element: <SchoolRegistrationPage />, allowedRoles: resolveAllowedRoles('/school-registration') },
+  { path: '/school-registration/:schoolId', element: <SchoolRegistrationDetailsPage />, allowedRoles: resolveAllowedRoles('/school-registration') },
+  { path: '/school-admin', element: <SchoolAdminPage />, allowedRoles: resolveAllowedRoles('/school-admin') },
+  { path: '/students', element: <StudentPage />, allowedRoles: resolveAllowedRoles('/students') },
+  { path: '/staff', element: <StaffPage />, allowedRoles: resolveAllowedRoles('/staff') },
+  { path: '/attendance', element: <AttendancePage />, allowedRoles: resolveAllowedRoles('/attendance') },
+  { path: '/fees', element: <FeesPage />, allowedRoles: resolveAllowedRoles('/fees') },
+  { path: '/exams', element: <ExamsPage />, allowedRoles: resolveAllowedRoles('/exams') },
+  { path: '/reports', element: <ReportsPage />, allowedRoles: resolveAllowedRoles('/reports') },
+  { path: '/settings', element: <SettingsPage />, allowedRoles: resolveAllowedRoles('/school-admin') },
+  { path: '/teacher-portal', element: <TeacherPortalPage />, allowedRoles: resolveAllowedRoles('/teacher-portal') },
+  { path: '/student-portal', element: <StudentPortalPage />, allowedRoles: resolveAllowedRoles('/student-portal') },
+  { path: '/parent-portal', element: <ParentPortalPage />, allowedRoles: resolveAllowedRoles('/parent-portal') },
+];
 
 const AppRoutes = () => {
   const { currentUser } = useAuth();
 
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register-school" element={<RegisterSchoolPage />} />
-      <Route path="/register-school/plan-details" element={<PlanDetailsPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/pricing" element={<PricingPage />} />
+      {publicRoutes.map((route) => (
+        <Route key={route.path} path={route.path} element={route.element} />
+      ))}
+
       <Route path="/access-denied" element={<AccessDeniedPage currentUser={currentUser} />} />
 
-      <Route element={<ProtectedRoute currentUser={currentUser} allowedRoles={['super-admin', 'school-admin', 'teacher', 'student', 'parent']} />}>
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/student-profile/:studentId" element={<StudentProfilePage />} />
-      </Route>
-
-      <Route element={<ProtectedRoute currentUser={currentUser} allowedRoles={['super-admin']} />}>
-        <Route path="/super-admin" element={<SuperAdminPage />} />
-        <Route path="/tenant-management" element={<TenantManagementPage />} />
-        <Route path="/tenant-management/add" element={<AddTenantPage />} />
-        <Route path="/tenant-management/:tenantLocalId/subscription/create" element={<CreateTenantSubscriptionPage />} />
-        <Route path="/school-registration" element={<SchoolRegistrationPage />} />
-        <Route path="/school-registration/:schoolId" element={<SchoolRegistrationDetailsPage />} />
-      </Route>
-
-      <Route element={<ProtectedRoute currentUser={currentUser} allowedRoles={['school-admin']} />}>
-        <Route path="/school-admin" element={<SchoolAdminPage />} />
-        <Route path="/students" element={<StudentPage />} />
-        <Route path="/staff" element={<StaffPage />} />
-        <Route path="/attendance" element={<AttendancePage />} />
-        <Route path="/fees" element={<FeesPage />} />
-        <Route path="/exams" element={<ExamsPage />} />
-        <Route path="/reports" element={<ReportsPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-      </Route>
-
-      <Route element={<ProtectedRoute currentUser={currentUser} allowedRoles={['teacher']} />}>
-        <Route path="/teacher-portal" element={<TeacherPortalPage />} />
-      </Route>
-
-      <Route element={<ProtectedRoute currentUser={currentUser} allowedRoles={['student']} />}>
-        <Route path="/student-portal" element={<StudentPortalPage />} />
-      </Route>
-
-      <Route element={<ProtectedRoute currentUser={currentUser} allowedRoles={['parent']} />}>
-        <Route path="/parent-portal" element={<ParentPortalPage />} />
-      </Route>
+      {protectedRoutes.map((route) => (
+        <Route
+          key={route.path}
+          element={<ProtectedRoute currentUser={currentUser} allowedRoles={route.allowedRoles} />}
+        >
+          <Route path={route.path} element={route.element} />
+        </Route>
+      ))}
     </Routes>
   );
-}
+};
 
 export default AppRoutes;

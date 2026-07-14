@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import ApiState from '../../common/ApiState';
 import PlanCatalog from '../../common/PlanCatalog';
-import usePlans from '../../hooks/usePlans';
+import useSubscriptionPlans from '../../hooks/useSubscriptionPlans';
 
 const PlanDetailsPage = () => {
   const {
@@ -9,7 +9,7 @@ const PlanDetailsPage = () => {
     loading,
     error,
     refresh,
-  } = usePlans();
+  } = useSubscriptionPlans();
 
   return (
     <div className="card shadow-sm border-0 p-4">

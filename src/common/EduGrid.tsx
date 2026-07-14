@@ -1,20 +1,7 @@
-const EduGrid = ({ columns, data, onRowClick, actions }) => {
-  /**
-   * EduGrid Component
-   * 
-   * Dynamic grid component that renders tables based on configuration
-   * 
-   * Props:
-   * @param {Array} columns - Array of column configuration objects
-   *   Example: [
-   *     { key: 'name', label: 'Name', sortable: true },
-   *     { key: 'class', label: 'Class' },
-   *     { key: 'status', label: 'Status', render: (value) => <badge>{value}</badge> }
-   *   ]
-   * @param {Array} data - Array of data objects to display
-   * @param {Function} onRowClick - Callback when row is clicked (optional)
-   * @param {Array} actions - Array of action buttons [{ label: 'View', onClick: () => {} }] (optional)
-   */
+import type { ReactNode } from 'react';
+import { EduGridAction, EduGridProps } from './EduGridConstants';
+
+const EduGrid = <T extends Record<string, unknown>>({ columns, data, onRowClick, actions }: EduGridProps<T>) => {
 
   if (!columns || !data) {
     return <div className="alert alert-warning">Invalid grid configuration</div>;
@@ -24,7 +11,7 @@ const EduGrid = ({ columns, data, onRowClick, actions }) => {
     return <div className="alert alert-info">No data available</div>;
   }
 
-  const renderActionContent = (action) => {
+  const renderActionContent = (action: EduGridAction<T>) => {
     if (action.renderIcon) {
       return action.renderIcon();
     }
@@ -36,13 +23,29 @@ const EduGrid = ({ columns, data, onRowClick, actions }) => {
     return action.label;
   };
 
+  const renderCellValue = (value: unknown): ReactNode => {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      return value as unknown as ReactNode;
+    }
+
+    return String(value);
+  };
+
   return (
     <div className="table-responsive">
       <table className="table table-hover align-middle mb-0">
         <thead>
           <tr>
             {columns.map((column) => (
-              <th key={column.key} className={column.sortable ? 'cursor-pointer' : ''}>
+              <th key={String(column.key)} className={column.sortable ? 'cursor-pointer' : ''}>
                 {column.label}
                 {column.sortable && <span className="ms-1">↕</span>}
               </th>
@@ -53,7 +56,7 @@ const EduGrid = ({ columns, data, onRowClick, actions }) => {
         <tbody>
           {data.map((row, rowIndex) => (
             (() => {
-              const visibleActions = actions ? actions.filter((action) => action.isVisible ? action.isVisible(row) : true) : [];
+              const visibleActions = actions ? actions.filter((action) => (action.isVisible ? action.isVisible(row) : true)) : [];
 
               return (
             <tr
@@ -62,12 +65,12 @@ const EduGrid = ({ columns, data, onRowClick, actions }) => {
               style={{ cursor: onRowClick ? 'pointer' : 'default' }}
             >
               {columns.map((column) => (
-                <td key={`${rowIndex}-${column.key}`}>
+                <td key={`${rowIndex}-${String(column.key)}`}>
                   {column.render
                     ? column.render(row[column.key], row)
                     : column.type === 'badge'
                     ? <span className={`badge ${column.badgeClass || 'bg-success'}`}>
-                        {row[column.key]}
+                        {renderCellValue(row[column.key])}
                       </span>
                     : column.type === 'link'
                     ? <a
@@ -78,9 +81,9 @@ const EduGrid = ({ columns, data, onRowClick, actions }) => {
                         }}
                         className="text-primary text-decoration-none fw-semibold"
                       >
-                        {row[column.key]}
+                        {renderCellValue(row[column.key])}
                       </a>
-                    : row[column.key]}
+                    : renderCellValue(row[column.key])}
                 </td>
               ))}
               {visibleActions.length > 0 && (

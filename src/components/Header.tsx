@@ -1,42 +1,25 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { navItems } from '../mockupData/mockupData';
+import { Roles, BaseLinks, type TopHeaderLink } from './LinkRowData';
+
+const buildTopHeaderLinks = (role?: string): TopHeaderLink[] => {
+  const activeRole = role || Roles.Guest;
+  const matchedRoleLinks = BaseLinks.find((item) => item.RoleName === activeRole && item.IsActive);
+
+  return (matchedRoleLinks?.Links ?? []).map((link) => ({
+    DisplayName: link.DisplayName,
+    Link: link.Link,
+    Roles: [activeRole],
+    IsActive: true,
+  }));
+};
 
 const Header = () => {
   const { currentUser, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-
-  const visibleItems = navItems.filter((item) => {
-    const role = currentUser?.role;
-
-    if (!role) {
-      return ['/', '/register-school', '/forgot-password', '/pricing'].includes(item.to);
-    }
-
-    if (role === 'super-admin') {
-      return ['/home', '/super-admin', '/tenant-management', '/school-registration'].includes(item.to);
-    }
-
-    if (role === 'school-admin') {
-      return ['/home', '/school-admin', '/students', '/staff', '/attendance', '/fees', '/exams', '/reports'].includes(item.to);
-    }
-
-    if (role === 'teacher') {
-      return ['/home', '/teacher-portal', '/attendance', '/exams', '/reports'].includes(item.to);
-    }
-
-    if (role === 'student') {
-      return ['/home', '/student-portal', '/fees', '/exams', '/reports'].includes(item.to);
-    }
-
-    if (role === 'parent') {
-      return ['/home', '/parent-portal', '/fees', '/reports'].includes(item.to);
-    }
-
-    return false;
-  });
+  const topHeaderLinks = buildTopHeaderLinks(currentUser?.role);
 
   const handleLogout = () => {
     logout();
@@ -65,9 +48,9 @@ const Header = () => {
       </div>
 
       <nav className="topbar-nav" aria-label="Primary">
-        {visibleItems.map((item) => (
-          <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-            {item.label}
+        {topHeaderLinks.map((item) => (
+          <NavLink key={item.Link} to={item.Link} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            {item.DisplayName}
           </NavLink>
         ))}
       </nav>

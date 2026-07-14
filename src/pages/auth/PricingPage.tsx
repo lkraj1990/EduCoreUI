@@ -1,6 +1,6 @@
 import ApiState from '../../common/ApiState';
 import PlanCatalog from '../../common/PlanCatalog';
-import usePlans from '../../hooks/usePlans';
+import useSubscriptionPlans from '../../hooks/useSubscriptionPlans';
 
 const PricingPage = () => {
   const {
@@ -8,7 +8,7 @@ const PricingPage = () => {
     loading,
     error,
     refresh,
-  } = usePlans();
+  } = useSubscriptionPlans();
 
   return (
     <div>

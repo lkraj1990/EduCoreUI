@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';  
+import type { EduModalProps } from './EduGridConstants';
 
 const EduModal = ({
   title,
@@ -15,29 +16,7 @@ const EduModal = ({
   errorMessage = '',
   size = 'md',
   dialogClassName = '',
-}) => {
-  /**
-   * EduModal Component - Dynamic Modal for Form Handling
-   * 
-   * Props:
-   * @param {string} title - Modal title
-   * @param {boolean} isOpen - Control modal visibility
-   * @param {Function} onClose - Callback to close modal
-   * @param {Function} onSubmit - Callback when form is submitted (receives formData)
-   * @param {Array} fields - Array of field configuration objects
-   *   Example: [
-   *     { name: 'firstName', label: 'First Name', type: 'text', required: true },
-   *     { name: 'email', label: 'Email', type: 'email', required: true },
-   *     { name: 'country', label: 'Country', type: 'select', required: true, 
-   *       options: [{ value: 'IN', label: 'India' }, { value: 'US', label: 'USA' }] },
-   *     { name: 'skills', label: 'Skills', type: 'multiselect', required: true,
-   *       options: [{ value: 'react', label: 'React' }, { value: 'node', label: 'Node.js' }] },
-   *     { name: 'description', label: 'Description', type: 'textarea' },
-   *     { name: 'active', label: 'Active', type: 'checkbox' }
-   *   ]
-   * @param {string} submitButtonText - Text for submit button
-   * @param {string} cancelButtonText - Text for cancel button
-   */
+}: EduModalProps) => {
 
   const initializeFormData = (currentFields, seedValues = {}) => {
     const data = {};
@@ -78,7 +57,7 @@ const EduModal = ({
   };
 
   const handleMultiselectChange = (e, fieldName) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value);
+    const selectedOptions = Array.from(e.currentTarget.selectedOptions, (option: HTMLOptionElement) => option.value);
     setFormData({
       ...formData,
       [fieldName]: selectedOptions,

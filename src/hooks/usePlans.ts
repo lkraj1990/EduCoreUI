@@ -1,15 +1,8 @@
 import useApiRequest from './useApiRequest';
 import { normalizePlanSummary, planService } from '../services';
+import { Plan } from './common/Plans';
 
-export interface Plan {
-  id: string;
-  name: string;
-  price: number;
-  billingCycle: string;
-  maxStudents: number;
-  maxStaff: number;
-  isActive: boolean;
-}
+
 
 const usePlans = () => {
   const result = useApiRequest({

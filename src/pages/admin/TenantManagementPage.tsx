@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import SubscriptionActionModal from '../../common/SubscriptionActionModal';
 import EduGrid from '../../common/EduGrid';
-import usePlans from '../../hooks/usePlans';
+import useSubscriptionPlans from '../../hooks/useSubscriptionPlans';
 import { deactivateTenant, syncTenantSubscription } from '../../redux/slices/tenantSlice';
 import { subscriptionService } from '../../services';
 
@@ -11,7 +11,7 @@ const TenantManagementPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { tenants } = useSelector((state) => state.tenants);
-  const { data: plans = [] } = usePlans();
+  const { data: plans = [] } = useSubscriptionPlans();
   const [selectedTenant, setSelectedTenant] = useState(null);
   const [modalAction, setModalAction] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);

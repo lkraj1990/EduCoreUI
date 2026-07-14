@@ -49,6 +49,7 @@ export const navItems = [
   { to: '/forgot-password', label: 'Forgot Password' },
   { to: '/pricing', label: 'Pricing' },
   { to: '/super-admin', label: 'Super Admin' },
+  { to: '/super-admin/create-plan', label: 'Create Plan' },
   { to: '/tenant-management', label: 'Tenant Mgmt' },
   { to: '/school-registration', label: 'School Registration' },
   { to: '/school-admin', label: 'School Admin' },

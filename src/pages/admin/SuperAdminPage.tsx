@@ -14,7 +14,10 @@ const SuperAdminPage = () => {
           <h2 className="page-control-title mb-1">Super Admin Dashboard</h2>
           <p className="page-control-subtitle mb-0">Monitor tenants, approvals, and platform health from one command desk.</p>
         </div>
-        <Link className="btn btn-outline-primary btn-sm" to="/settings">White Label Settings</Link>
+        <div className="d-flex gap-2">
+          <Link className="btn btn-outline-primary btn-sm" to="/super-admin/create-plan">Create Plan</Link>
+          <Link className="btn btn-outline-secondary btn-sm" to="/settings">White Label Settings</Link>
+        </div>
       </div>
       <div className="row g-3 mb-4">
         <div className="col-md-3"><div className="card border-0 bg-primary text-white"><div className="card-body"><h6>Tenants</h6><h3>{tenants.length}</h3></div></div></div>

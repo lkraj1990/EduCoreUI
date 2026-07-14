@@ -12,7 +12,7 @@ const Sidebar = () => {
     }
 
     if (role === 'super-admin') {
-      return ['/', '/super-admin', '/tenant-management', '/school-registration', '/settings', '/home'].includes(item.to);
+      return ['/', '/super-admin', '/super-admin/create-plan', '/tenant-management', '/school-registration', '/settings', '/home'].includes(item.to);
     }
 
     if (role === 'school-admin') {

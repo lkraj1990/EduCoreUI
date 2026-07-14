@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import PlanSelect from '../../common/PlanSelect';
-import usePlans from '../../hooks/usePlans';
+import SubscriptionPlanDropdown from '../../common/SubscriptionPlanDropdown';
+import useSubscriptionPlans from '../../hooks/useSubscriptionPlans';
 import { syncTenantSubscription } from '../../redux/slices/tenantSlice';
 import { subscriptionService } from '../../services';
 
@@ -13,10 +13,7 @@ const CreateTenantSubscriptionPage = () => {
   const { tenants } = useSelector((state) => state.tenants);
   const {
     data: plans = [],
-    loading: plansLoading,
-    error: plansError,
-    refresh: refreshPlans,
-  } = usePlans();
+  } = useSubscriptionPlans();
   const tenant = tenants.find((item) => item.localId === tenantLocalId);
   const [formData, setFormData] = useState({
     tenantId: tenant?.tenantId || '',
@@ -120,14 +117,6 @@ const CreateTenantSubscriptionPage = () => {
           <div>
             <h2 className="fw-bold mb-1">Create Subscription</h2>
             <p className="text-muted mb-0">Link a live backend subscription for {tenant.name}.</p>
-            {plansError && (
-              <div className="alert alert-warning py-2 mt-3 mb-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <span>Live plan API is unavailable. Showing fallback plans for now.</span>
-                <button type="button" className="btn btn-sm btn-outline-warning" onClick={() => refreshPlans()}>
-                  Retry
-                </button>
-              </div>
-            )}
           </div>
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => navigate('/tenant-management')}>
             Back to Tenant Management
@@ -154,19 +143,12 @@ const CreateTenantSubscriptionPage = () => {
           </div>
 
           <div className="col-md-6">
-            <PlanSelect
+            <SubscriptionPlanDropdown
               name="planId"
               label="Plan"
               required
               value={formData.planId}
               onChange={handleChange}
-              optionValueKey="id"
-              optionLabelKey="name"
-              disabled={plansLoading && plans.length === 0}
-              plans={plans.filter((plan) => plan.isActive).map((plan) => ({
-                id: plan.id,
-                name: `${plan.name} • ${plan.priceDisplay}/${plan.billingCycleLabel}`,
-              }))}
               error={errors.planId}
             />
           </div>

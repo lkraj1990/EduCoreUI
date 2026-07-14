@@ -13,4 +13,5 @@ export {
 export { entitlementService } from './entitlementService';
 export { paymentService } from './paymentService';
 export { normalizePlanSummary, planService } from './planService';
+export { schoolService } from './schoolService';
 export { subscriptionService } from './subscriptionService';

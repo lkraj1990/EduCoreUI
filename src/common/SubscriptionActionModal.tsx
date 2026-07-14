@@ -1,9 +1,10 @@
 import EduModal from './EduModal';
+import type { EduModalField, EduModalOption } from './EduGridConstants';
 
-const buildFields = (action, plans) => {
+const buildFields = (action, plans): EduModalField[] => {
   const planOptions = plans
     .filter((plan) => plan.isActive)
-    .map((plan) => ({ value: plan.id, label: `${plan.name} (${plan.priceDisplay}/${plan.billingCycleLabel})` }));
+    .map((plan): EduModalOption => ({ value: plan.id, label: `${plan.name} (${plan.priceDisplay}/${plan.billingCycleLabel})` }));
 
   if (action === 'create') {
     return [
