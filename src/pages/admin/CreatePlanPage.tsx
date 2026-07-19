@@ -9,13 +9,13 @@ const initialFormData = {
   billingCycle: 'monthly',
   maxStudents: '',
   maxStaff: '',
-  isActive: true,
+  features: '',
 };
 
 const CreatePlanPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState(initialFormData);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Partial<Record<keyof typeof initialFormData, string>>>({});
   const [requestError, setRequestError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,7 +33,7 @@ const CreatePlanPage = () => {
   };
 
   const validate = () => {
-    const nextErrors = {};
+    const nextErrors: Partial<Record<keyof typeof initialFormData, string>> = {};
 
     if (!formData.name.trim()) {
       nextErrors.name = 'Plan name is required';
@@ -69,7 +69,12 @@ const CreatePlanPage = () => {
         billingCycle: formData.billingCycle,
         maxStudents: Number(formData.maxStudents || 0),
         maxStaff: Number(formData.maxStaff || 0),
-        isActive: formData.isActive,
+        featuresJson: JSON.stringify(
+          formData.features
+            .split(',')
+            .map((feature) => feature.trim())
+            .filter(Boolean),
+        ),
       });
 
       clearSubscriptionPlansCache();
@@ -83,18 +88,19 @@ const CreatePlanPage = () => {
 
   return (
     <div className="card shadow-sm border-0">
-      <div className="card-body p-4 p-lg-5">
-        <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+      <div className="card-header page-card-header">
+        <div className="page-header-wrap">
           <div>
             <h2 className="fw-bold mb-1">Create Plan</h2>
             <p className="text-muted mb-0">Create a new subscription plan for tenant onboarding.</p>
           </div>
-          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => navigate('/super-admin')}>
-            Back to Dashboard
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => navigate('/plans')}>
+            Back to Plans
           </button>
         </div>
-
-        <form className="row g-3" onSubmit={handleSubmit}>
+      </div>
+      <div className="card-body p-4 p-lg-5">
+        <form id="create-plan-form" className="row g-3" onSubmit={handleSubmit}>
           <div className="col-md-6">
             <label className="form-label">Plan Name <span className="text-danger">*</span></label>
             <input
@@ -103,7 +109,7 @@ const CreatePlanPage = () => {
               className={`form-control ${errors.name ? 'is-invalid' : ''}`}
               value={formData.name}
               onChange={handleChange}
-              placeholder="Premium Plus"
+              placeholder="Plan name"
             />
             {errors.name && <div className="invalid-feedback d-block">{errors.name}</div>}
           </div>
@@ -118,7 +124,7 @@ const CreatePlanPage = () => {
               className={`form-control ${errors.price ? 'is-invalid' : ''}`}
               value={formData.price}
               onChange={handleChange}
-              placeholder="199"
+              placeholder="Price"
             />
             {errors.price && <div className="invalid-feedback d-block">{errors.price}</div>}
           </div>
@@ -146,7 +152,7 @@ const CreatePlanPage = () => {
               className="form-control"
               value={formData.maxStudents}
               onChange={handleChange}
-              placeholder="2000"
+              placeholder="Max students count"
             />
           </div>
 
@@ -159,35 +165,34 @@ const CreatePlanPage = () => {
               className="form-control"
               value={formData.maxStaff}
               onChange={handleChange}
-              placeholder="250"
+              placeholder="Max staff count"
             />
           </div>
 
           <div className="col-12">
-            <div className="form-check">
-              <input
-                id="planIsActive"
-                name="isActive"
-                type="checkbox"
-                className="form-check-input"
-                checked={formData.isActive}
-                onChange={handleChange}
-              />
-              <label htmlFor="planIsActive" className="form-check-label">Activate plan immediately</label>
-            </div>
+            <label className="form-label">Features</label>
+            <textarea
+              name="features"
+              rows={3}
+              className="form-control"
+              value={formData.features}
+              onChange={handleChange}
+              placeholder="Plan features Optional"
+            />
+            <small className="text-muted">Enter comma-separated features. This is saved as <code>featuresJson</code> via POST /api/plans.</small>
           </div>
 
           {requestError && <div className="col-12"><div className="alert alert-danger py-2 mb-0">{requestError}</div></div>}
-
-          <div className="col-12 d-flex justify-content-end gap-2">
-            <button type="button" className="btn btn-outline-secondary" onClick={() => navigate('/super-admin')} disabled={isSubmitting}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create Plan'}
-            </button>
-          </div>
         </form>
+      </div>
+
+      <div className="card-footer page-card-footer d-flex justify-content-end gap-2">
+        <button type="button" className="btn btn-outline-secondary" onClick={() => navigate('/super-admin')} disabled={isSubmitting}>
+          Cancel
+        </button>
+        <button type="submit" form="create-plan-form" className="btn btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? 'Creating...' : 'Create Plan'}
+        </button>
       </div>
     </div>
   );

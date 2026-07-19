@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import type { RootState } from '../../redux/store';
 
 const SuperAdminPage = () => {
-  const { tenants } = useSelector((state) => state.tenants);
+  const { tenants } = useSelector((state: RootState) => state.tenants);
   const activeSchools = tenants.filter((tenant) => tenant.status === 'Active').length;
   const trialSchools = tenants.filter((tenant) => tenant.plan === 'Free Trial').length;
 
@@ -15,7 +16,7 @@ const SuperAdminPage = () => {
           <p className="page-control-subtitle mb-0">Monitor tenants, approvals, and platform health from one command desk.</p>
         </div>
         <div className="d-flex gap-2">
-          <Link className="btn btn-outline-primary btn-sm" to="/super-admin/create-plan">Create Plan</Link>
+          <Link className="btn btn-outline-primary btn-sm" to="/plans">View Plans</Link>
           <Link className="btn btn-outline-secondary btn-sm" to="/settings">White Label Settings</Link>
         </div>
       </div>

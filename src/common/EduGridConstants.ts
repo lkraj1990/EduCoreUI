@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-export interface EduGridColumn<T = Record<string, unknown>> {
+export interface EduGridColumn<T = object> {
   key: Extract<keyof T, string | number> | string;
   label: string;
   sortable?: boolean;
@@ -10,7 +10,7 @@ export interface EduGridColumn<T = Record<string, unknown>> {
   render?: (value: unknown, row: T) => ReactNode;
 }
 
-export interface EduGridAction<T = Record<string, unknown>> {
+export interface EduGridAction<T = object> {
   label: string;
   onClick: (row: T) => void;
   tooltip?: string;
@@ -22,7 +22,7 @@ export interface EduGridAction<T = Record<string, unknown>> {
   isVisible?: (row: T) => boolean;
 }
 
-export interface EduGridProps<T = Record<string, unknown>> {
+export interface EduGridProps<T = object> {
   columns: Array<EduGridColumn<T>>;
   data: T[];
   onRowClick?: (row: T) => void;

@@ -1,5 +1,6 @@
 export interface ErrorRegisterSchoolForm {
   schoolName?: string;
+  adminName?: string;
   mobileNumber?: string;
   adminEmail?: string;
   tenantId?: string;

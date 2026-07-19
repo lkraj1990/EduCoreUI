@@ -19,6 +19,7 @@ const CreateTenantSubscriptionPage = () => {
     tenantId: tenant?.tenantId || '',
     planId: tenant?.planId || '',
     billingCycle: tenant?.billingCycle || 'monthly',
+    startDate: new Date().toISOString().slice(0, 10),
     autoRenew: tenant?.autoRenew ?? true,
   });
   const [errors, setErrors] = useState({});
@@ -66,6 +67,10 @@ const CreateTenantSubscriptionPage = () => {
       nextErrors.billingCycle = 'Billing cycle is required';
     }
 
+    if (!formData.startDate) {
+      nextErrors.startDate = 'Start date is required';
+    }
+
     return nextErrors;
   };
 
@@ -102,6 +107,12 @@ const CreateTenantSubscriptionPage = () => {
         autoRenew: createdSubscription?.autoRenew ?? formData.autoRenew,
       }));
 
+      const nextSubscriptionId = createdSubscription?.id || '';
+      if (nextSubscriptionId) {
+        navigate(`/tenant-management/${tenant.localId}/subscription/${nextSubscriptionId}/invoice`);
+        return;
+      }
+
       navigate('/tenant-management');
     } catch (error) {
       setRequestError(error.message || 'Subscription request failed.');
@@ -112,8 +123,8 @@ const CreateTenantSubscriptionPage = () => {
 
   return (
     <div className="card shadow-sm border-0">
-      <div className="card-body p-4 p-lg-5">
-        <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+      <div className="card-header page-card-header">
+        <div className="page-header-wrap">
           <div>
             <h2 className="fw-bold mb-1">Create Subscription</h2>
             <p className="text-muted mb-0">Link a live backend subscription for {tenant.name}.</p>
@@ -122,8 +133,21 @@ const CreateTenantSubscriptionPage = () => {
             Back to Tenant Management
           </button>
         </div>
+      </div>
+      <div className="card-body p-4 p-lg-5">
+        <ul className="nav nav-tabs mb-4">
+          <li className="nav-item">
+            <span className="nav-link">Tenant</span>
+          </li>
+          <li className="nav-item">
+            <span className="nav-link active">Subscription</span>
+          </li>
+          <li className="nav-item">
+            <span className="nav-link disabled">Invoice</span>
+          </li>
+        </ul>
 
-        <form className="row g-3" onSubmit={handleSubmit}>
+        <form id="create-subscription-form" className="row g-3" onSubmit={handleSubmit}>
           <div className="col-md-6">
             <label className="form-label">School Name</label>
             <input className="form-control" value={tenant.name} disabled />
@@ -167,6 +191,18 @@ const CreateTenantSubscriptionPage = () => {
             {errors.billingCycle && <div className="invalid-feedback d-block">{errors.billingCycle}</div>}
           </div>
 
+          <div className="col-md-6">
+            <label className="form-label">Start Date <span className="text-danger">*</span></label>
+            <input
+              type="date"
+              name="startDate"
+              className={`form-control ${errors.startDate ? 'is-invalid' : ''}`}
+              value={formData.startDate}
+              onChange={handleChange}
+            />
+            {errors.startDate && <div className="invalid-feedback d-block">{errors.startDate}</div>}
+          </div>
+
           <div className="col-12">
             <div className="form-check">
               <input
@@ -184,16 +220,16 @@ const CreateTenantSubscriptionPage = () => {
           </div>
 
           {requestError && <div className="col-12"><div className="alert alert-danger py-2 mb-0">{requestError}</div></div>}
-
-          <div className="col-12 d-flex gap-2 justify-content-end mt-2">
-            <button type="button" className="btn btn-outline-secondary" onClick={() => navigate('/tenant-management')} disabled={isSubmitting}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create Subscription'}
-            </button>
-          </div>
         </form>
+      </div>
+
+      <div className="card-footer page-card-footer d-flex gap-2 justify-content-end">
+        <button type="button" className="btn btn-outline-secondary" onClick={() => navigate('/tenant-management')} disabled={isSubmitting}>
+          Cancel
+        </button>
+        <button type="submit" form="create-subscription-form" className="btn btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? 'Creating...' : 'Create Subscription'}
+        </button>
       </div>
     </div>
   );

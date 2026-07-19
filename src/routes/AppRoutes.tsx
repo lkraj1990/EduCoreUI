@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterSchoolPage from '../pages/auth/RegisterSchoolPage';
+import SchoolRegistrationPaymentPage from '../pages/auth/SchoolRegistrationPaymentPage';
 import PlanDetailsPage from '../pages/auth/PlanDetailsPage';
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import PricingPage from '../pages/auth/PricingPage';
@@ -11,6 +12,8 @@ import CreatePlanPage from '../pages/admin/CreatePlanPage';
 import TenantManagementPage from '../pages/admin/TenantManagementPage';
 import AddTenantPage from '../pages/admin/AddTenantPage';
 import CreateTenantSubscriptionPage from '../pages/admin/CreateTenantSubscriptionPage';
+import GenerateInvoicePage from '../pages/admin/GenerateInvoicePage';
+import TenantSubscriptionDetailsPage from '../pages/admin/TenantSubscriptionDetailsPage';
 import SchoolRegistrationPage from '../pages/admin/SchoolRegistrationPage';
 import SchoolRegistrationDetailsPage from '../pages/admin/SchoolRegistrationDetailsPage';
 import SchoolAdminPage from '../pages/admin/SchoolAdminPage';
@@ -63,10 +66,10 @@ const publicRoutes = [
   { path: '/home', element: <HomePage /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/register-school', element: <RegisterSchoolPage /> },
+  { path: '/register-school/:schoolId/payment', element: <SchoolRegistrationPaymentPage /> },
   { path: '/register-school/plan-details', element: <PlanDetailsPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/pricing', element: <PricingPage /> },
-  { path: '/plans', element: <PricingPage /> },
   { path: '/erp-modules/:moduleId', element: <ModuleDescriptionPage /> },
 ];
 
@@ -75,10 +78,13 @@ const protectedRoutes = [
   { path: '/profile', element: <ProfilePage />, allowedRoles: allAuthenticatedRoles },
   { path: '/student-profile/:studentId', element: <StudentProfilePage />, allowedRoles: allAuthenticatedRoles },
   { path: '/super-admin', element: <SuperAdminPage />, allowedRoles: resolveAllowedRoles('/super-admin') },
+  { path: '/plans', element: <PricingPage />, allowedRoles: resolveAllowedRoles('/plans') },
   { path: '/super-admin/create-plan', element: <CreatePlanPage />, allowedRoles: resolveAllowedRoles('/super-admin') },
   { path: '/tenant-management', element: <TenantManagementPage />, allowedRoles: resolveAllowedRoles('/tenant-management') },
   { path: '/tenant-management/add', element: <AddTenantPage />, allowedRoles: resolveAllowedRoles('/tenant-management') },
+  { path: '/tenant-management/:tenantLocalId/subscription', element: <TenantSubscriptionDetailsPage />, allowedRoles: resolveAllowedRoles('/tenant-management') },
   { path: '/tenant-management/:tenantLocalId/subscription/create', element: <CreateTenantSubscriptionPage />, allowedRoles: resolveAllowedRoles('/tenant-management') },
+  { path: '/tenant-management/:tenantLocalId/subscription/:subscriptionId/invoice', element: <GenerateInvoicePage />, allowedRoles: resolveAllowedRoles('/tenant-management') },
   { path: '/school-registration', element: <SchoolRegistrationPage />, allowedRoles: resolveAllowedRoles('/school-registration') },
   { path: '/school-registration/:schoolId', element: <SchoolRegistrationDetailsPage />, allowedRoles: resolveAllowedRoles('/school-registration') },
   { path: '/school-admin', element: <SchoolAdminPage />, allowedRoles: resolveAllowedRoles('/school-admin') },

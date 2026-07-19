@@ -1,22 +1,82 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import SubscriptionActionModal from '../../common/SubscriptionActionModal';
 import EduGrid from '../../common/EduGrid';
+import type { EduGridAction, EduGridColumn } from '../../common/EduGridConstants';
 import useSubscriptionPlans from '../../hooks/useSubscriptionPlans';
-import { deactivateTenant, syncTenantSubscription } from '../../redux/slices/tenantSlice';
-import { subscriptionService } from '../../services';
+import { deactivateTenant, setTenants, syncTenantSubscription } from '../../redux/slices/tenantSlice';
+import { normalizeTenantDetailRecord, subscriptionService, tenantService } from '../../services';
+import type { RootState } from '../../redux/store';
+
+type TenantRow = RootState['tenants']['tenants'][number];
+type SubscriptionSnapshot = Partial<{
+  id: string;
+  planId: string;
+  status: string;
+  billingCycle: string;
+  autoRenew: boolean;
+}>;
+type PersistOverrides = Partial<{
+  tenantId: string;
+  subscriptionId: string;
+  planId: string;
+  planName: string;
+  subscriptionStatus: string;
+  billingCycle: string;
+  autoRenew: boolean;
+}>;
 
 const TenantManagementPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { tenants } = useSelector((state) => state.tenants);
+  const { tenants } = useSelector((state: RootState) => state.tenants);
   const { data: plans = [] } = useSubscriptionPlans();
-  const [selectedTenant, setSelectedTenant] = useState(null);
+  const [selectedTenant, setSelectedTenant] = useState<TenantRow | null>(null);
   const [modalAction, setModalAction] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestError, setRequestError] = useState('');
   const [requestMessage, setRequestMessage] = useState('');
+  const [isLoadingTenants, setIsLoadingTenants] = useState(false);
+  const [tenantsLoadError, setTenantsLoadError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTenantDetails = async () => {
+      setIsLoadingTenants(true);
+      setTenantsLoadError('');
+
+      try {
+        const response = await tenantService.listTenants();
+        if (!isMounted) {
+          return;
+        }
+
+        const tenantRecords = Array.isArray(response)
+          ? response.map(normalizeTenantDetailRecord)
+          : [];
+
+        dispatch(setTenants(tenantRecords));
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        setTenantsLoadError(error instanceof Error ? error.message : 'Failed to load tenants.');
+      } finally {
+        if (isMounted) {
+          setIsLoadingTenants(false);
+        }
+      }
+    };
+
+    loadTenantDetails().catch(() => null);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch]);
 
   const closeSubscriptionModal = () => {
     setSelectedTenant(null);
@@ -24,16 +84,16 @@ const TenantManagementPage = () => {
     setRequestError('');
   };
 
-  const openSubscriptionModal = (action, tenant) => {
+  const openSubscriptionModal = (action: string, tenant: TenantRow) => {
     setSelectedTenant(tenant);
     setModalAction(action);
     setRequestError('');
     setRequestMessage('');
   };
 
-  const findPlanById = (planId) => plans.find((plan) => plan.id === planId);
+  const findPlanById = (planId?: string) => plans.find((plan) => plan.id === planId);
 
-  const persistSubscription = (tenant, subscription, overrides = {}) => {
+  const persistSubscription = (tenant: TenantRow, subscription: SubscriptionSnapshot | null, overrides: PersistOverrides = {}) => {
     const resolvedPlan = findPlanById(overrides.planId || subscription?.planId || tenant.planId);
 
     dispatch(syncTenantSubscription({
@@ -60,7 +120,7 @@ const TenantManagementPage = () => {
     return null;
   };
 
-  const handleSubscriptionSubmit = async (formData) => {
+  const handleSubscriptionSubmit = async (formData: Record<string, unknown>) => {
     if (!selectedTenant || !modalAction) {
       return;
     }
@@ -70,21 +130,21 @@ const TenantManagementPage = () => {
 
     try {
       if (modalAction === 'upgrade') {
-        await subscriptionService.upgradeSubscription(formData.subscriptionId, {
-          targetPlanId: formData.targetPlanId,
-          effectiveFrom: formData.effectiveFrom ? new Date(formData.effectiveFrom).toISOString() : null,
+        await subscriptionService.upgradeSubscription(String(formData.subscriptionId || ''), {
+          targetPlanId: String(formData.targetPlanId || ''),
+          effectiveFrom: formData.effectiveFrom ? new Date(String(formData.effectiveFrom)).toISOString() : null,
         });
 
         let upgradedSubscription = null;
         try {
-          upgradedSubscription = await reloadSubscriptionSnapshot(selectedTenant, formData.subscriptionId);
+          upgradedSubscription = await reloadSubscriptionSnapshot(selectedTenant, String(formData.subscriptionId || ''));
         } catch {
           upgradedSubscription = null;
         }
 
         persistSubscription(selectedTenant, upgradedSubscription, {
-          subscriptionId: formData.subscriptionId,
-          planId: formData.targetPlanId,
+          subscriptionId: String(formData.subscriptionId || ''),
+          planId: String(formData.targetPlanId || ''),
           subscriptionStatus: upgradedSubscription?.status || 'Pending Upgrade',
         });
 
@@ -93,20 +153,20 @@ const TenantManagementPage = () => {
         return;
       }
 
-      await subscriptionService.cancelSubscription(formData.subscriptionId, {
-        cancelMode: formData.cancelMode,
-        reason: formData.reason,
+      await subscriptionService.cancelSubscription(String(formData.subscriptionId || ''), {
+        cancelMode: String(formData.cancelMode || ''),
+        reason: String(formData.reason || ''),
       });
 
       let canceledSubscription = null;
       try {
-        canceledSubscription = await reloadSubscriptionSnapshot(selectedTenant, formData.subscriptionId);
+        canceledSubscription = await reloadSubscriptionSnapshot(selectedTenant, String(formData.subscriptionId || ''));
       } catch {
         canceledSubscription = null;
       }
 
       persistSubscription(selectedTenant, canceledSubscription, {
-        subscriptionId: formData.subscriptionId,
+        subscriptionId: String(formData.subscriptionId || ''),
         subscriptionStatus: canceledSubscription?.status || 'Cancelled',
       });
 
@@ -120,7 +180,7 @@ const TenantManagementPage = () => {
   };
 
   // Define grid columns
-  const columns = [
+  const columns: EduGridColumn<TenantRow>[] = [
     {
       key: 'name',
       label: 'School Name',
@@ -135,7 +195,7 @@ const TenantManagementPage = () => {
       type: 'badge',
       render: (value) => (
         <span className={`badge ${value === 'Active' ? 'bg-success' : value === 'Pending' ? 'bg-warning text-dark' : 'bg-danger'}`}>
-          {value}
+          {String(value)}
         </span>
       ),
     },
@@ -144,7 +204,7 @@ const TenantManagementPage = () => {
       label: 'Subscription',
       render: (value) => (
         <span className={`badge ${value === 'Active' ? 'bg-success' : value === 'Cancelled' ? 'bg-danger' : value === 'Pending Upgrade' ? 'bg-warning text-dark' : 'bg-secondary'}`}>
-          {value}
+          {String(value)}
         </span>
       ),
     },
@@ -154,7 +214,7 @@ const TenantManagementPage = () => {
     },
   ];
 
-  const actions = [
+  const actions: EduGridAction<TenantRow>[] = [
     {
       label: 'Create Subscription',
       tooltip: 'Create subscription',
@@ -168,36 +228,16 @@ const TenantManagementPage = () => {
       className: 'btn-outline-primary',
     },
     {
-      label: 'Upgrade',
-      tooltip: 'Upgrade subscription',
-      ariaLabel: 'Upgrade subscription',
-      renderIcon: () => <span aria-hidden="true" className="fw-bold fs-5 lh-1">↑</span>,
+      label: 'Subscription',
+      tooltip: 'Open subscription details',
+      ariaLabel: 'Open subscription details',
+      renderIcon: () => <span aria-hidden="true" className="fw-bold fs-5 lh-1">S</span>,
       iconOnly: true,
       isVisible: (row) => Boolean(row.plan && row.subscriptionId),
       onClick: (row) => {
-        if (!row.subscriptionId) {
-          alert('Add a subscription first before requesting an upgrade.');
-          return;
-        }
-        openSubscriptionModal('upgrade', row);
+        navigate(`/tenant-management/${row.localId}/subscription`);
       },
       className: 'btn-outline-info',
-    },
-    {
-      label: 'Cancel Subscription',
-      tooltip: 'Cancel subscription',
-      ariaLabel: 'Cancel subscription',
-      renderIcon: () => <span aria-hidden="true" className="fw-bold fs-5 lh-1">×</span>,
-      iconOnly: true,
-      isVisible: (row) => Boolean(row.plan && row.subscriptionId),
-      onClick: (row) => {
-        if (!row.subscriptionId) {
-          alert('No active subscription is linked to this tenant yet.');
-          return;
-        }
-        openSubscriptionModal('cancel', row);
-      },
-      className: 'btn-outline-danger',
     },
     {
       label: 'Deactivate',
@@ -221,8 +261,8 @@ const TenantManagementPage = () => {
 
   return (
     <div className="card tenant-page-card shadow-sm border-0">
-      <div className="card-body p-4 p-lg-5">
-        <div className="tenant-toolbar mb-4">
+      <div className="card-header page-card-header">
+        <div className="page-header-wrap">
           <div>
             <h2 className="fw-bold mb-1">Tenant Management</h2>
             <p className="text-muted mb-0">Manage all onboarded schools, plans, and lifecycle status.</p>
@@ -235,8 +275,11 @@ const TenantManagementPage = () => {
             </button>
           </div>
         </div>
-
+      </div>
+      <div className="card-body p-4 p-lg-5">
         {requestMessage && <div className="alert alert-success py-2">{requestMessage}</div>}
+        {tenantsLoadError && <div className="alert alert-warning py-2">{tenantsLoadError}</div>}
+        {isLoadingTenants && <div className="alert alert-info py-2">Loading tenant details...</div>}
 
         <div className="tenant-grid-shell">
           <EduGrid columns={columns} data={tenants} actions={actions} />

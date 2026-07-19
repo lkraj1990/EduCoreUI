@@ -2,14 +2,18 @@ import { createSlice } from '@reduxjs/toolkit';
 import { tenantRows } from '../../mockupData/mockupData';
 
 const normalizeTenant = (tenant, index) => ({
-  localId: tenant.localId || tenant.tenantId || `tenant-${index + 1}`,
-  tenantId: tenant.tenantId || '',
+  ...tenant,
+  localId: tenant.localId || tenant.tenantId || tenant.id || `tenant-${index + 1}`,
+  tenantId: tenant.tenantId || tenant.id || '',
+  name: tenant.name || tenant.schoolName || 'Unnamed Tenant',
+  domain: tenant.domain || tenant.customDomain || '',
+  status: tenant.status || 'Active',
   subscriptionId: tenant.subscriptionId || '',
   planId: tenant.planId || '',
+  plan: tenant.plan || tenant.planName || 'Not Assigned',
   subscriptionStatus: tenant.subscriptionStatus || 'Not Linked',
   billingCycle: tenant.billingCycle || 'monthly',
   autoRenew: tenant.autoRenew ?? true,
-  ...tenant,
 });
 
 const findTenantIndex = (tenants, payload) => {
@@ -30,6 +34,10 @@ const tenantSlice = createSlice({
   name: 'tenants',
   initialState,
   reducers: {
+    setTenants: (state, action) => {
+      const incomingTenants = Array.isArray(action.payload) ? action.payload : [];
+      state.tenants = incomingTenants.map(normalizeTenant);
+    },
     addTenant: (state, action) => {
       state.tenants.push(normalizeTenant(action.payload, state.tenants.length));
     },
@@ -60,5 +68,5 @@ const tenantSlice = createSlice({
   },
 });
 
-export const { addTenant, deactivateTenant, updateTenant, syncTenantSubscription } = tenantSlice.actions;
+export const { setTenants, addTenant, deactivateTenant, updateTenant, syncTenantSubscription } = tenantSlice.actions;
 export default tenantSlice.reducer;

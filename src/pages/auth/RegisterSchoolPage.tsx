@@ -1,22 +1,29 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import SubscriptionPlanDropdown from '../../common/SubscriptionPlanDropdown';
 import useSubscriptionPlans from '../../hooks/useSubscriptionPlans';
 import { ErrorRegisterSchoolForm } from '../../hooks/common/SchoolPage';
+import { schoolService } from '../../services';
+import { normalizeSchoolPaymentStatus, schoolOnboardingService } from '../../services/schoolOnboardingService';
 
+const initialFormData = {
+  schoolName: '',
+  adminName: '',
+  mobileNumber: '',
+  adminEmail: '',
+  tenantId: '',
+  schoolAddress: '',
+  customDomain: '',
+};
 
 const RegisterSchoolPage = () => {
   const [searchParams] = useSearchParams();
-  const [formData, setFormData] = useState({
-    schoolName: '',
-    mobileNumber: '',
-    adminEmail: '',
-    tenantId: '',
-    schoolAddress: '',
-    customDomain: '',
-  });
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState<ErrorRegisterSchoolForm>({});
   const [submitMessage, setSubmitMessage] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const { data: plans = [] } = useSubscriptionPlans();
 
@@ -28,6 +35,10 @@ const RegisterSchoolPage = () => {
 
     if (!formData.schoolName.trim()) {
       nextErrors.schoolName = 'School Name is required';
+    }
+
+    if (!formData.adminName.trim()) {
+      nextErrors.adminName = 'Admin Name is required';
     }
 
     if (!formData.mobileNumber.trim()) {
@@ -89,15 +100,67 @@ const RegisterSchoolPage = () => {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setSubmitMessage('');
+    setSubmitError('');
 
     if (!validateForm()) {
       return;
     }
 
-    setSubmitMessage('School registration form is valid and ready to submit.');
+    setIsSubmitting(true);
+
+    try {
+      const createdRequest = await schoolService.createSchoolRequest({
+        schoolName: formData.schoolName.trim(),
+        adminName: formData.adminName.trim(),
+        adminEmail: formData.adminEmail.trim(),
+        adminMobile: formData.mobileNumber.trim(),
+        location: formData.schoolAddress.trim(),
+        planId: selectedPlanId,
+      });
+
+      const selectedPlan = plans.find((plan) => plan.id === selectedPlanId);
+      const schoolRequestId = String(createdRequest?.id || '');
+
+      if (schoolRequestId) {
+        schoolOnboardingService.upsertFromSchoolRequest({
+          schoolRequestId,
+          schoolName: formData.schoolName.trim(),
+          adminName: formData.adminName.trim(),
+          adminEmail: formData.adminEmail.trim(),
+          adminMobile: formData.mobileNumber.trim(),
+          location: formData.schoolAddress.trim(),
+          planId: selectedPlanId,
+          planName: selectedPlan?.name || '',
+          requestedAt: createdRequest?.submittedAt || new Date().toISOString(),
+          customDomain: formData.customDomain.trim(),
+          tenantCode: formData.tenantId.trim(),
+          amount: Number(selectedPlan?.price || 0),
+          currency: 'INR',
+          requestStatus: String(createdRequest?.status || 'Requested'),
+          paymentStatus: normalizeSchoolPaymentStatus(createdRequest?.paymentStatus),
+          paymentReference: String(createdRequest?.paymentReference || ''),
+          paymentFailedReason: String(createdRequest?.paymentFailureReason || ''),
+          paymentStartedAt: String(createdRequest?.paymentStartedAt || ''),
+          paymentCompletedAt: String(createdRequest?.paymentCompletedAt || ''),
+        });
+      }
+
+      setSubmitMessage('School registration request submitted successfully.');
+      setFormData(initialFormData);
+      setSelectedPlanId('');
+      setErrors({});
+
+      if (schoolRequestId) {
+        navigate(`/register-school/${schoolRequestId}/payment`);
+      }
+    } catch (error) {
+      setSubmitError(error?.message || 'Failed to submit school registration request.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -115,6 +178,17 @@ const RegisterSchoolPage = () => {
             onChange={handleInputChange}
           />
           {errors.schoolName ? <div className="invalid-feedback d-block">{errors.schoolName}</div> : null}
+        </div>
+        <div className="col-md-6">
+          <label className="form-label">Admin Name <span className="text-danger">*</span></label>
+          <input
+            className={`form-control ${errors.adminName ? 'is-invalid' : ''}`}
+            placeholder="Admin full name"
+            name="adminName"
+            value={formData.adminName}
+            onChange={handleInputChange}
+          />
+          {errors.adminName ? <div className="invalid-feedback d-block">{errors.adminName}</div> : null}
         </div>
         <div className="col-md-6">
           <label className="form-label">Admin Mobile Number <span className="text-danger">*</span></label>
@@ -189,8 +263,9 @@ const RegisterSchoolPage = () => {
         </div>
 
         <div className="col-12">
-          <button type="submit" className="btn btn-primary">Create School</button>
+          <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? 'Submitting...' : 'Create School'}</button>
           {submitMessage ? <div className="text-success mt-2 small">{submitMessage}</div> : null}
+          {submitError ? <div className="text-danger mt-2 small">{submitError}</div> : null}
         </div>
       </form>
     </div>

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { EduGridAction, EduGridProps } from './EduGridConstants';
 
-const EduGrid = <T extends Record<string, unknown>>({ columns, data, onRowClick, actions }: EduGridProps<T>) => {
+const EduGrid = <T extends object>({ columns, data, onRowClick, actions }: EduGridProps<T>) => {
 
   if (!columns || !data) {
     return <div className="alert alert-warning">Invalid grid configuration</div>;
@@ -56,6 +56,7 @@ const EduGrid = <T extends Record<string, unknown>>({ columns, data, onRowClick,
         <tbody>
           {data.map((row, rowIndex) => (
             (() => {
+              const rowRecord = row as Record<string, unknown>;
               const visibleActions = actions ? actions.filter((action) => (action.isVisible ? action.isVisible(row) : true)) : [];
 
               return (
@@ -64,13 +65,16 @@ const EduGrid = <T extends Record<string, unknown>>({ columns, data, onRowClick,
               onClick={() => onRowClick && onRowClick(row)}
               style={{ cursor: onRowClick ? 'pointer' : 'default' }}
             >
-              {columns.map((column) => (
-                <td key={`${rowIndex}-${String(column.key)}`}>
+              {columns.map((column) => {
+                const cellKey = String(column.key);
+
+                return (
+                <td key={`${rowIndex}-${cellKey}`}>
                   {column.render
-                    ? column.render(row[column.key], row)
+                    ? column.render(rowRecord[cellKey], row)
                     : column.type === 'badge'
                     ? <span className={`badge ${column.badgeClass || 'bg-success'}`}>
-                        {renderCellValue(row[column.key])}
+                        {renderCellValue(rowRecord[cellKey])}
                       </span>
                     : column.type === 'link'
                     ? <a
@@ -81,11 +85,12 @@ const EduGrid = <T extends Record<string, unknown>>({ columns, data, onRowClick,
                         }}
                         className="text-primary text-decoration-none fw-semibold"
                       >
-                        {renderCellValue(row[column.key])}
+                        {renderCellValue(rowRecord[cellKey])}
                       </a>
-                    : renderCellValue(row[column.key])}
+                    : renderCellValue(rowRecord[cellKey])}
                 </td>
-              ))}
+                );
+              })}
               {visibleActions.length > 0 && (
                 <td>
                   <div className="d-flex gap-1">

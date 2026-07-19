@@ -13,5 +13,12 @@ export {
 export { entitlementService } from './entitlementService';
 export { paymentService } from './paymentService';
 export { normalizePlanSummary, planService } from './planService';
+export {
+	getSchoolOnboardingProgress,
+	getSchoolOnboardingSteps,
+	getSchoolRegistrationStatus,
+	schoolOnboardingService,
+} from './schoolOnboardingService';
 export { schoolService } from './schoolService';
 export { subscriptionService } from './subscriptionService';
+export { normalizeTenantDetailRecord, tenantService } from './tenantService';

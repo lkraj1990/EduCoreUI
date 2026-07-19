@@ -42,7 +42,7 @@ export const BaseLinks: RoleBasedLinks[] = [
       { DisplayName: 'Dashboard', Link: '/super-admin' },
       { DisplayName: 'Tenants', Link: '/tenant-management' },
       { DisplayName: 'Schools', Link: '/school-registration' },
-      { DisplayName: 'Plans', Link: '/pricing' },
+      { DisplayName: 'Plans', Link: '/plans' },
     ],
   },
   {

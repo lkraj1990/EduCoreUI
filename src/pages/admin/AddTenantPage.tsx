@@ -113,8 +113,8 @@ const AddTenantPage = () => {
 
   return (
     <div className="card shadow-sm border-0">
-      <div className="card-body p-4 p-lg-5">
-        <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+      <div className="card-header page-card-header">
+        <div className="page-header-wrap">
           <div>
             <h2 className="fw-bold mb-1">Add New Tenant</h2>
             <p className="text-muted mb-0">Create a new school tenant using the details below.</p>
@@ -123,8 +123,9 @@ const AddTenantPage = () => {
             View Tenants List
           </button>
         </div>
-
-        <form className="row g-3" onSubmit={handleSubmit}>
+      </div>
+      <div className="card-body p-4 p-lg-5">
+        <form id="add-tenant-form" className="row g-3" onSubmit={handleSubmit}>
           <div className="col-md-6">
             <label className="form-label">School Name <span className="text-danger">*</span></label>
             <select
@@ -198,16 +199,16 @@ const AddTenantPage = () => {
           </div>
 
           {requestError && <div className="col-12"><div className="alert alert-danger py-2 mb-0">{requestError}</div></div>}
-
-          <div className="col-12 d-flex gap-2 justify-content-end mt-2">
-            <button type="button" className="btn btn-outline-secondary" onClick={() => navigate('/tenant-management')} disabled={isSubmitting}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Tenant'}
-            </button>
-          </div>
         </form>
+      </div>
+
+      <div className="card-footer page-card-footer d-flex gap-2 justify-content-end">
+        <button type="button" className="btn btn-outline-secondary" onClick={() => navigate('/tenant-management')} disabled={isSubmitting}>
+          Cancel
+        </button>
+        <button type="submit" form="add-tenant-form" className="btn btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? 'Saving...' : 'Save Tenant'}
+        </button>
       </div>
     </div>
   );
