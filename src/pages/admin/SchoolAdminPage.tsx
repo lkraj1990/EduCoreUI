@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import SchoolOnboardingProgress from '../../common/SchoolOnboardingProgress';
 import { useAuth } from '../../context/AuthContext';
+import { getMockModulesForSubscription } from '../../mockupData/subscriptionModules';
 import { normalizeSchoolOnboardingProgress, normalizeSchoolRequestRecord, schoolService } from '../../services/schoolService';
-import { schoolOnboardingService } from '../../services/schoolOnboardingService';
+import { normalizeSchoolPaymentStatus, schoolOnboardingService } from '../../services/schoolOnboardingService';
 
 const SchoolAdminPage = () => {
   const { currentUser } = useAuth();
@@ -11,6 +11,10 @@ const SchoolAdminPage = () => {
     [currentUser?.email],
   );
   const [onboardingRecord, setOnboardingRecord] = useState(cachedRecord);
+
+  const schoolName = onboardingRecord?.schoolName || currentUser?.tenant || 'My School';
+  const activePlan = onboardingRecord?.planName || onboardingRecord?.planId || 'Basic';
+  const includedModules = useMemo(() => getMockModulesForSubscription(activePlan), [activePlan]);
 
   useEffect(() => {
     setOnboardingRecord(cachedRecord);
@@ -46,7 +50,7 @@ const SchoolAdminPage = () => {
           planName: school.planName,
           requestedAt: school.submittedAt,
           requestStatus: progress.requestStatus || school.status,
-          paymentStatus: String(school.paymentStatus || progress.paymentStatus || 'pending').toLowerCase(),
+          paymentStatus: normalizeSchoolPaymentStatus(school.paymentStatus || progress.paymentStatus),
           paymentReference: school.paymentReference,
           paymentFailedReason: school.paymentFailureReason,
           reviewedAt: school.reviewedAt,
@@ -71,18 +75,53 @@ const SchoolAdminPage = () => {
 
   return (
     <div>
-      <h2 className="fw-bold mb-3">School Admin Dashboard</h2>
-      <div className="mb-4">
-        <SchoolOnboardingProgress record={onboardingRecord} title="School Registration Progress" />
+      <div className="card shadow-sm border-0 mb-4">
+        <div className="card-body p-4">
+          <span className="text-muted text-uppercase small fw-semibold">Dashboard</span>
+          <h2 className="fw-bold mb-1 mt-2">{schoolName}</h2>
+          <p className="text-muted mb-0">School Admin Dashboard</p>
+        </div>
       </div>
+
       <div className="row g-3 mb-4">
-        <div className="col-md-4"><div className="card border-0 bg-light"><div className="card-body"><h6>Students</h6><h3>1,240</h3></div></div></div>
-        <div className="col-md-4"><div className="card border-0 bg-light"><div className="card-body"><h6>Staff</h6><h3>86</h3></div></div></div>
-        <div className="col-md-4"><div className="card border-0 bg-light"><div className="card-body"><h6>Fees Collected</h6><h3>$84k</h3></div></div></div>
+        <div className="col-md-4">
+          <div className="card border-0 bg-light h-100">
+            <div className="card-body">
+              <h6 className="text-muted mb-1">School</h6>
+              <h4 className="mb-0">{schoolName}</h4>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="card border-0 bg-light h-100">
+            <div className="card-body">
+              <h6 className="text-muted mb-1">Active Subscription</h6>
+              <h4 className="mb-0">{activePlan}</h4>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="card border-0 bg-light h-100">
+            <div className="card-body">
+              <h6 className="text-muted mb-1">Enabled Modules</h6>
+              <h4 className="mb-0">{includedModules.length}</h4>
+            </div>
+          </div>
+        </div>
       </div>
+
       <div className="row g-3">
-        <div className="col-md-6"><div className="card shadow-sm border-0 h-100"><div className="card-body"><h5>Academic Summary</h5><p className="text-muted mb-0">Classes, sessions, timetables and LMS modules ready for expansion.</p></div></div></div>
-        <div className="col-md-6"><div className="card shadow-sm border-0 h-100"><div className="card-body"><h5>Communication Center</h5><p className="text-muted mb-0">SMS, email, WhatsApp and in-app notifications can be managed from here.</p></div></div></div>
+        {includedModules.map((module) => (
+          <div className="col-md-6 col-xl-4" key={module.id}>
+            <div className="card shadow-sm border-0 h-100">
+              <div className="card-body">
+                <div className="text-muted small mb-1">{module.category}</div>
+                <h5 className="mb-2">{module.title}</h5>
+                <p className="text-muted mb-0">{module.summary}</p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

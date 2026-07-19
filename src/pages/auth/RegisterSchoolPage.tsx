@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import SchoolRegistrationDetailsCard from '../../common/SchoolRegistrationDetailsCard';
 import SubscriptionPlanDropdown from '../../common/SubscriptionPlanDropdown';
 import useSubscriptionPlans from '../../hooks/useSubscriptionPlans';
 import { ErrorRegisterSchoolForm } from '../../hooks/common/SchoolPage';
 import { schoolService } from '../../services';
 import { normalizeSchoolPaymentStatus, schoolOnboardingService } from '../../services/schoolOnboardingService';
+import { normalizeSchoolRequestRecord, type SchoolRequestRecord } from '../../services/schoolService';
 
 const initialFormData = {
   schoolName: '',
@@ -23,9 +25,19 @@ const RegisterSchoolPage = () => {
   const [errors, setErrors] = useState<ErrorRegisterSchoolForm>({});
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitError, setSubmitError] = useState('');
+  const [createdRegistrationId, setCreatedRegistrationId] = useState('');
+  const [existingRegistrationId, setExistingRegistrationId] = useState('');
+  const [existingIdError, setExistingIdError] = useState('');
+  const [findDetailsError, setFindDetailsError] = useState('');
+  const [isFindingDetails, setIsFindingDetails] = useState(false);
+  const [foundSchoolDetails, setFoundSchoolDetails] = useState<SchoolRequestRecord | null>(null);
+  const [isCompletingPayment, setIsCompletingPayment] = useState(false);
+  const [paymentCompleteMessage, setPaymentCompleteMessage] = useState('');
+  const [activeTab, setActiveTab] = useState<'new' | 'existing'>('new');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const { data: plans = [] } = useSubscriptionPlans();
+  const foundDetailsRef = useRef<HTMLDivElement | null>(null);
 
   const mobileNumberRegex = /^\+?[0-9\s()-]{10,15}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -78,6 +90,14 @@ const RegisterSchoolPage = () => {
     }
   }, [plans, searchParams]);
 
+  useEffect(() => {
+    if (activeTab !== 'existing' || !foundSchoolDetails || !foundDetailsRef.current) {
+      return;
+    }
+
+    foundDetailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [activeTab, foundSchoolDetails]);
+
   const handlePlanChange = (event) => {
     setSelectedPlanId(event.target.value);
     setErrors((prev) => ({
@@ -104,6 +124,7 @@ const RegisterSchoolPage = () => {
     event.preventDefault();
     setSubmitMessage('');
     setSubmitError('');
+    setCreatedRegistrationId('');
 
     if (!validateForm()) {
       return;
@@ -148,14 +169,11 @@ const RegisterSchoolPage = () => {
         });
       }
 
-      setSubmitMessage('School registration request submitted successfully.');
+      setSubmitMessage('School registration request submitted successfully. Please save your School Registration ID for future transactions.');
+      setCreatedRegistrationId(schoolRequestId);
       setFormData(initialFormData);
       setSelectedPlanId('');
       setErrors({});
-
-      if (schoolRequestId) {
-        navigate(`/register-school/${schoolRequestId}/payment`);
-      }
     } catch (error) {
       setSubmitError(error?.message || 'Failed to submit school registration request.');
     } finally {
@@ -163,11 +181,193 @@ const RegisterSchoolPage = () => {
     }
   };
 
+  const handleFindDetails = async () => {
+    const normalizedId = existingRegistrationId.trim();
+
+    if (!normalizedId) {
+      setExistingIdError('Please enter School Registration ID.');
+      setFoundSchoolDetails(null);
+      return;
+    }
+
+    setExistingIdError('');
+    setFindDetailsError('');
+    setPaymentCompleteMessage('');
+    setIsFindingDetails(true);
+
+    try {
+      const schoolResponse = await schoolService.getSchoolRequest(normalizedId);
+      const normalizedSchool = normalizeSchoolRequestRecord(schoolResponse);
+
+      if (!normalizedSchool.id) {
+        throw new Error('School Registration ID not found.');
+      }
+
+      setFoundSchoolDetails(normalizedSchool);
+    } catch (error) {
+      setFoundSchoolDetails(null);
+      setFindDetailsError(error instanceof Error ? error.message : 'Unable to fetch registration details.');
+    } finally {
+      setIsFindingDetails(false);
+    }
+  };
+
+  const handleQuickPayNow = async () => {
+    if (!foundSchoolDetails?.id || normalizeSchoolPaymentStatus(foundSchoolDetails.paymentStatus) === 'complete') {
+      return;
+    }
+
+    setIsCompletingPayment(true);
+    setFindDetailsError('');
+    setPaymentCompleteMessage('');
+
+    try {
+      const paymentReference = `PAY-BYPASS-${Date.now()}`;
+      await schoolService.updateSchoolRequestPaymentStatus(foundSchoolDetails.id, {
+        status: 'complete',
+        paymentReference,
+      });
+
+      const updatedSchoolResponse = await schoolService.getSchoolRequest(foundSchoolDetails.id);
+      const updatedSchool = normalizeSchoolRequestRecord(updatedSchoolResponse);
+      setFoundSchoolDetails(updatedSchool);
+
+      setPaymentCompleteMessage('Payment marked as complete. Admin approval flow is now enabled.');
+    } catch (error) {
+      setFindDetailsError(error instanceof Error ? error.message : 'Unable to complete payment.');
+    } finally {
+      setIsCompletingPayment(false);
+    }
+  };
+
   return (
     <div className="card shadow-sm border-0 p-4">
       <h2 className="fw-bold mb-3">Register School</h2>
-      <p className="text-muted">Onboard a new school into the EduCoreUi SaaS platform.</p>
-      <form className="row g-3" onSubmit={handleSubmit} noValidate>
+      <p className="text-muted">Choose a flow to create new registration or continue with existing registration ID.</p>
+
+      <div className="registration-tabs mb-4" role="tablist" aria-label="Registration flows">
+        <button
+          type="button"
+          className={`registration-tab-btn ${activeTab === 'new' ? 'active' : ''}`}
+          onClick={() => setActiveTab('new')}
+          role="tab"
+          aria-selected={activeTab === 'new'}
+        >
+          New Registration
+        </button>
+        <button
+          type="button"
+          className={`registration-tab-btn ${activeTab === 'existing' ? 'active' : ''}`}
+          onClick={() => setActiveTab('existing')}
+          role="tab"
+          aria-selected={activeTab === 'existing'}
+        >
+          Have Registration ID
+        </button>
+      </div>
+
+      {activeTab === 'existing' ? (
+        <div className="card border-0 shadow-sm bg-light-subtle mb-4 registration-tab-panel">
+          <div className="card-body p-3 p-md-4">
+            <h6 className="fw-bold mb-2">Have Registration ID</h6>
+            <p className="text-muted small mb-3">Enter your School Registration ID and continue payment or onboarding process.</p>
+            <div className="row g-2 align-items-start">
+              <div className="col-md-8">
+                <input
+                  className={`form-control ${existingIdError ? 'is-invalid' : ''}`}
+                  placeholder="Enter School Registration ID"
+                  value={existingRegistrationId}
+                  onChange={(event) => {
+                    setExistingRegistrationId(event.target.value);
+                    setExistingIdError('');
+                    setFindDetailsError('');
+                    setFoundSchoolDetails(null);
+                  }}
+                />
+                {existingIdError ? <div className="invalid-feedback d-block">{existingIdError}</div> : null}
+              </div>
+              <div className="col-md-4 d-grid">
+                <button type="button" className="btn btn-outline-primary" onClick={handleFindDetails} disabled={isFindingDetails}>
+                  {isFindingDetails ? 'Finding...' : 'Find Details'}
+                </button>
+              </div>
+            </div>
+
+            {findDetailsError ? <div className="alert alert-danger py-2 mt-3 mb-0">{findDetailsError}</div> : null}
+
+            {foundSchoolDetails ? (
+              (() => {
+                const normalizedPaymentStatus = normalizeSchoolPaymentStatus(foundSchoolDetails.paymentStatus);
+                const normalizedRequestStatus = String(foundSchoolDetails.status || '').toLowerCase();
+                const isApproved = normalizedRequestStatus === 'approved';
+                const isRejected = normalizedRequestStatus === 'rejected';
+                const statusLabel = isApproved
+                  ? 'Complete'
+                  : isRejected
+                  ? 'Rejected'
+                  : normalizedPaymentStatus === 'complete'
+                  ? 'Payment Complete'
+                  : 'Pending';
+                const primaryUsername = foundSchoolDetails.adminEmail || foundSchoolDetails.adminMobile || 'N/A';
+
+                return (
+                  <div className="mt-3">
+                    <SchoolRegistrationDetailsCard
+                      school={foundSchoolDetails}
+                      title="Registration Details"
+                      subtitle="Review your submitted registration and continue onboarding."
+                      detailsRef={foundDetailsRef}
+                      statusLabel={statusLabel}
+                      topAlert={(
+                        <div className="alert alert-info py-2 mb-3">
+                          TODO: Payment gateway integration is pending. Currently using temporary quick payment completion.
+                        </div>
+                      )}
+                      footer={(
+                        <>
+                          {normalizedPaymentStatus !== 'complete' && !isApproved && !isRejected ? (
+                            <div>
+                              <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={handleQuickPayNow}
+                                disabled={isCompletingPayment}
+                              >
+                                {isCompletingPayment ? 'Processing...' : 'Pay Now'}
+                              </button>
+                            </div>
+                          ) : null}
+
+                          {isApproved ? (
+                            <div className="alert alert-success py-2 mt-3 mb-0">
+                              <div><strong>Onboarding Complete.</strong> Super Admin has approved your registration.</div>
+                              <div><strong>Username:</strong> {primaryUsername}</div>
+                              <div><strong>Login with:</strong> Email or Mobile Number</div>
+                              <div className="mt-1">
+                                <Link
+                                  to={`/forgot-password${primaryUsername !== 'N/A' ? `?username=${encodeURIComponent(primaryUsername)}` : ''}`}
+                                  className="link-success fw-semibold"
+                                >
+                                  Reset Password
+                                </Link>
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {paymentCompleteMessage ? <div className="alert alert-success py-2 mt-3 mb-0">{paymentCompleteMessage}</div> : null}
+                        </>
+                      )}
+                    />
+                  </div>
+                );
+              })()
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {activeTab === 'new' ? (
+      <form className="row g-3 registration-tab-panel" onSubmit={handleSubmit} noValidate>
         <div className="col-md-6">
           <label className="form-label">School Name <span className="text-danger">*</span></label>
           <input
@@ -265,9 +465,25 @@ const RegisterSchoolPage = () => {
         <div className="col-12">
           <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? 'Submitting...' : 'Create School'}</button>
           {submitMessage ? <div className="text-success mt-2 small">{submitMessage}</div> : null}
+          {createdRegistrationId ? (
+            <div className="alert alert-success mt-3 mb-0 py-2">
+              <div><strong>School Registration ID:</strong> {createdRegistrationId}</div>
+              <div className="small">Please save this ID for future payment and onboarding transactions.</div>
+              <div className="mt-2">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-success"
+                  onClick={() => navigate(`/register-school/${createdRegistrationId}/payment`)}
+                >
+                  Proceed To Payment
+                </button>
+              </div>
+            </div>
+          ) : null}
           {submitError ? <div className="text-danger mt-2 small">{submitError}</div> : null}
         </div>
       </form>
+      ) : null}
     </div>
   );
 }

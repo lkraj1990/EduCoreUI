@@ -2,7 +2,30 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import EduGrid from '../../common/EduGrid';
 import { schoolService, normalizeSchoolRequestRecord, type SchoolRequestRecord } from '../../services/schoolService';
-import { getSchoolRegistrationStatus, schoolOnboardingService } from '../../services/schoolOnboardingService';
+import { getSchoolRegistrationStatus, normalizeSchoolPaymentStatus, schoolOnboardingService } from '../../services/schoolOnboardingService';
+
+const resolveRowStatus = (status?: string, paymentStatus?: string) => {
+  const normalizedStatus = String(status || '').toLowerCase();
+  const normalizedPayment = normalizeSchoolPaymentStatus(paymentStatus);
+
+  if (normalizedStatus === 'approved') {
+    return 'Approved';
+  }
+
+  if (normalizedStatus === 'rejected') {
+    return 'Rejected';
+  }
+
+  if (normalizedPayment === 'complete') {
+    return 'Payment Complete';
+  }
+
+  if (normalizedPayment === 'failed') {
+    return 'Payment Failed';
+  }
+
+  return 'Requested';
+};
 
 const SchoolRegistrationPage = () => {
   const [schoolRequests, setSchoolRequests] = useState<SchoolRequestRecord[]>([]);
@@ -19,12 +42,32 @@ const SchoolRegistrationPage = () => {
         const normalizedRows = Array.isArray(response)
           ? response.map((row) => {
             const normalizedRow = normalizeSchoolRequestRecord(row);
-            const onboardingRecord = schoolOnboardingService.getBySchoolRequestId(normalizedRow.id);
+            const onboardingRecord = schoolOnboardingService.syncFromApi({
+              schoolRequestId: normalizedRow.id,
+              schoolName: normalizedRow.schoolName,
+              adminName: normalizedRow.adminName,
+              adminEmail: normalizedRow.adminEmail,
+              adminMobile: normalizedRow.adminMobile,
+              location: normalizedRow.location,
+              planId: normalizedRow.planId,
+              planName: normalizedRow.planName,
+              requestedAt: normalizedRow.submittedAt,
+              requestStatus: normalizedRow.status,
+              paymentStatus: normalizeSchoolPaymentStatus(normalizedRow.paymentStatus),
+              paymentReference: normalizedRow.paymentReference,
+              paymentFailedReason: normalizedRow.paymentFailureReason,
+              reviewedAt: normalizedRow.reviewedAt,
+              reviewedBy: normalizedRow.reviewedBy,
+              paymentStartedAt: normalizedRow.paymentStartedAt,
+              paymentCompletedAt: normalizedRow.paymentCompletedAt,
+            });
+
+            const resolvedStatus = resolveRowStatus(normalizedRow.status, onboardingRecord?.paymentStatus || normalizedRow.paymentStatus);
 
             return {
               ...normalizedRow,
-              status: getSchoolRegistrationStatus(onboardingRecord) || normalizedRow.status,
-              paymentStatus: normalizedRow.paymentStatus || onboardingRecord?.paymentStatus || 'Pending',
+              status: resolvedStatus,
+              paymentStatus: onboardingRecord?.paymentStatus || normalizedRow.paymentStatus || 'Pending',
             };
           })
           : [];

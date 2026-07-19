@@ -1,24 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import SchoolOnboardingProgress from '../../common/SchoolOnboardingProgress';
 import useSubscriptionPlans from '../../hooks/useSubscriptionPlans';
 import {
   normalizeSchoolOnboardingProgress,
-  normalizeSchoolRequestPaymentSession,
   normalizeSchoolRequestRecord,
   schoolService,
 } from '../../services/schoolService';
-import { schoolOnboardingService, type SchoolOnboardingRecord } from '../../services/schoolOnboardingService';
+import {
+  normalizeSchoolPaymentStatus,
+  schoolOnboardingService,
+  type SchoolOnboardingRecord,
+} from '../../services/schoolOnboardingService';
 
 const SchoolRegistrationPaymentPage = () => {
   const { schoolId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { data: plans = [] } = useSubscriptionPlans();
   const [school, setSchool] = useState<any>(null);
   const [onboardingRecord, setOnboardingRecord] = useState<SchoolOnboardingRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [requestError, setRequestError] = useState('');
   const [requestMessage, setRequestMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCompletingPayment, setIsCompletingPayment] = useState(false);
 
   const syncSchoolState = async (requestId: string) => {
     const [schoolResponse, progressResponse] = await Promise.all([
@@ -39,7 +44,7 @@ const SchoolRegistrationPaymentPage = () => {
       planName: normalizedSchool.planName,
       requestedAt: normalizedSchool.submittedAt,
       requestStatus: normalizedProgress.requestStatus || normalizedSchool.status,
-      paymentStatus: String(normalizedSchool.paymentStatus || normalizedProgress.paymentStatus || 'pending').toLowerCase(),
+      paymentStatus: normalizeSchoolPaymentStatus(normalizedSchool.paymentStatus || normalizedProgress.paymentStatus),
       paymentReference: normalizedSchool.paymentReference,
       paymentFailedReason: normalizedSchool.paymentFailureReason,
       reviewedAt: normalizedSchool.reviewedAt,
@@ -119,7 +124,7 @@ const SchoolRegistrationPaymentPage = () => {
       amount: Number(selectedPlan?.price || onboardingRecord?.amount || 0),
       currency: 'INR',
       requestStatus: school.status,
-      paymentStatus: String(school.paymentStatus || onboardingRecord?.paymentStatus || 'pending').toLowerCase(),
+      paymentStatus: normalizeSchoolPaymentStatus(school.paymentStatus || onboardingRecord?.paymentStatus),
       paymentReference: school.paymentReference,
       paymentFailedReason: school.paymentFailureReason,
       reviewedAt: school.reviewedAt,
@@ -131,87 +136,53 @@ const SchoolRegistrationPaymentPage = () => {
     setOnboardingRecord(nextRecord);
   }, [onboardingRecord?.amount, school, selectedPlan]);
 
-  const handleInitiatePayment = async () => {
+  useEffect(() => {
     if (!schoolId) {
       return;
     }
 
-    setIsSubmitting(true);
-    setRequestMessage('');
-    setRequestError('');
-
-    try {
-      const paymentSessionResponse = await schoolService.startSchoolRequestPayment(schoolId);
-      const paymentSession = normalizeSchoolRequestPaymentSession(paymentSessionResponse);
-
-      const nextRecord = schoolOnboardingService.syncFromApi({
-        schoolRequestId: schoolId,
-        paymentStatus: String(paymentSession.paymentStatus || 'pending').toLowerCase(),
-        paymentReference: paymentSession.paymentReference,
-        paymentStartedAt: paymentSession.startedAt,
-        checkoutUrl: paymentSession.checkoutUrl,
-      });
-
-      setOnboardingRecord(nextRecord);
-      setRequestMessage(paymentSession.checkoutUrl
-        ? 'Payment session started. Use the checkout link or mark the final result below.'
-        : 'Payment session started. Mark the final result below after payment response.');
-    } catch (error) {
-      setRequestError(error instanceof Error ? error.message : 'Unable to start payment session.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handlePaymentStatusUpdate = async (status: 'complete' | 'failed') => {
-    if (!schoolId) {
+    const locationState = location.state as { paymentSuccess?: boolean; paymentReference?: string } | null;
+    if (!locationState?.paymentSuccess) {
       return;
     }
 
-    setIsSubmitting(true);
-    setRequestMessage('');
+    setRequestMessage(locationState.paymentReference
+      ? `Payment completed successfully. Reference: ${locationState.paymentReference}`
+      : 'Payment completed successfully.');
+
+    syncSchoolState(schoolId).catch(() => null);
+
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate, schoolId]);
+
+  const payableAmount = Number(selectedPlan?.price || onboardingRecord?.amount || 0);
+  const formattedAmount = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: onboardingRecord?.currency || 'INR',
+  }).format(payableAmount);
+
+  const handlePayClick = async () => {
+    if (!schoolId || onboardingRecord?.paymentStatus === 'complete') {
+      return;
+    }
+
     setRequestError('');
+    setRequestMessage('');
+    setIsCompletingPayment(true);
 
     try {
-      const updatedSchoolResponse = await schoolService.updateSchoolRequestPaymentStatus(schoolId, {
-        status,
-        paymentReference: onboardingRecord?.paymentReference || undefined,
-        failureReason: status === 'failed' ? 'Payment was not completed by the school.' : undefined,
+      const paymentReference = `PAY-BYPASS-${Date.now()}`;
+      await schoolService.updateSchoolRequestPaymentStatus(schoolId, {
+        status: 'complete',
+        paymentReference,
       });
 
-      const normalizedSchool = normalizeSchoolRequestRecord(updatedSchoolResponse);
-      const progressResponse = await schoolService.getSchoolRequestProgress(schoolId);
-      const normalizedProgress = normalizeSchoolOnboardingProgress(progressResponse);
-      const nextRecord = schoolOnboardingService.syncFromApi({
-        schoolRequestId: normalizedSchool.id,
-        schoolName: normalizedSchool.schoolName,
-        adminName: normalizedSchool.adminName,
-        adminEmail: normalizedSchool.adminEmail,
-        adminMobile: normalizedSchool.adminMobile,
-        location: normalizedSchool.location,
-        planId: normalizedSchool.planId,
-        planName: selectedPlan?.name || normalizedSchool.planName,
-        requestedAt: normalizedSchool.submittedAt,
-        requestStatus: normalizedProgress.requestStatus || normalizedSchool.status,
-        paymentStatus: String(normalizedSchool.paymentStatus || normalizedProgress.paymentStatus || 'pending').toLowerCase(),
-        paymentReference: normalizedSchool.paymentReference,
-        paymentFailedReason: normalizedSchool.paymentFailureReason,
-        reviewedAt: normalizedSchool.reviewedAt,
-        reviewedBy: normalizedSchool.reviewedBy,
-        completionPercent: normalizedProgress.completionPercent,
-        paymentStartedAt: normalizedSchool.paymentStartedAt,
-        paymentCompletedAt: normalizedSchool.paymentCompletedAt,
-      });
-
-      setSchool(normalizedSchool);
-      setOnboardingRecord(nextRecord);
-      setRequestMessage(status === 'complete'
-        ? 'Payment completed. Super Admin approval is now unlocked.'
-        : 'Payment failed. Retry is required before admin approval.');
+      await syncSchoolState(schoolId);
+      setRequestMessage(`Payment completed successfully. Reference: ${paymentReference}. Admin approval is now enabled.`);
     } catch (error) {
-      setRequestError(error instanceof Error ? error.message : 'Unable to update payment state.');
+      setRequestError(error instanceof Error ? error.message : 'Unable to complete payment.');
     } finally {
-      setIsSubmitting(false);
+      setIsCompletingPayment(false);
     }
   };
 
@@ -256,29 +227,33 @@ const SchoolRegistrationPaymentPage = () => {
             <div className="col-md-6"><p className="mb-1"><strong>School:</strong> {school?.schoolName || 'N/A'}</p></div>
             <div className="col-md-6"><p className="mb-1"><strong>Admin Email:</strong> {school?.adminEmail || 'N/A'}</p></div>
             <div className="col-md-6"><p className="mb-1"><strong>Plan:</strong> {selectedPlan?.name || school?.planName || school?.planId || 'N/A'}</p></div>
-            <div className="col-md-6"><p className="mb-1"><strong>Amount:</strong> {new Intl.NumberFormat('en-IN', { style: 'currency', currency: onboardingRecord?.currency || 'INR' }).format(Number(selectedPlan?.price || onboardingRecord?.amount || 0))}</p></div>
+            <div className="col-md-6"><p className="mb-1"><strong>Amount:</strong> {formattedAmount}</p></div>
             <div className="col-md-6"><p className="mb-1"><strong>Request ID:</strong> {school?.id}</p></div>
             <div className="col-md-6"><p className="mb-1"><strong>Payment Reference:</strong> {onboardingRecord?.paymentReference || 'Pending'}</p></div>
             <div className="col-md-6"><p className="mb-1"><strong>Payment Started:</strong> {onboardingRecord?.paymentStartedAt ? new Date(onboardingRecord.paymentStartedAt).toLocaleString() : 'Not started'}</p></div>
-            <div className="col-md-6"><p className="mb-1"><strong>Checkout URL:</strong> {onboardingRecord?.checkoutUrl ? <a href={onboardingRecord.checkoutUrl} target="_blank" rel="noreferrer">Open Checkout</a> : 'Will appear after payment initiation'}</p></div>
+            <div className="col-md-6"><p className="mb-1"><strong>Payment Status:</strong> {onboardingRecord?.paymentStatus || 'initiated'}</p></div>
+          </div>
+
+          <div className="alert alert-info py-2 mb-3">
+            TODO: Payment gateway integration is pending. For now, Pay action directly marks payment as complete.
           </div>
 
           {requestMessage ? <div className="alert alert-success py-2">{requestMessage}</div> : null}
           {requestError && school ? <div className="alert alert-danger py-2">{requestError}</div> : null}
 
           <div className="d-flex flex-wrap gap-2">
-            <button type="button" className="btn btn-primary" onClick={handleInitiatePayment} disabled={isSubmitting}>
-              {isSubmitting ? 'Processing...' : 'Start Payment'}
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handlePayClick}
+              disabled={onboardingRecord?.paymentStatus === 'complete' || isCompletingPayment}
+            >
+              {onboardingRecord?.paymentStatus === 'complete'
+                ? `Paid ${formattedAmount}`
+                : isCompletingPayment
+                ? 'Processing...'
+                : `Pay ${formattedAmount}`}
             </button>
-            <button type="button" className="btn btn-success" onClick={() => handlePaymentStatusUpdate('complete')} disabled={isSubmitting}>
-              Mark Payment Complete
-            </button>
-            <button type="button" className="btn btn-outline-danger" onClick={() => handlePaymentStatusUpdate('failed')} disabled={isSubmitting}>
-              Mark Payment Failed
-            </button>
-            <Link to="/school-admin" className="btn btn-outline-secondary">
-              Open School Admin Progress
-            </Link>
           </div>
         </div>
       </div>

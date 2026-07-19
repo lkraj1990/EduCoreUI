@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { tenantRows } from '../../mockupData/mockupData';
 
 const normalizeTenant = (tenant, index) => ({
   ...tenant,
@@ -27,7 +26,7 @@ const findTenantIndex = (tenants, payload) => {
 };
 
 const initialState = {
-  tenants: tenantRows.map(normalizeTenant),
+  tenants: [],
 };
 
 const tenantSlice = createSlice({

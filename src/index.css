@@ -35,7 +35,6 @@ body {
 }
 
 .app-shell {
-  display: flex;
   min-height: 100vh;
 }
 
@@ -44,6 +43,16 @@ body {
   background: #0f172a;
   color: white;
   padding: 24px 16px;
+  border-radius: 16px;
+  height: calc(100vh - 210px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: sticky;
+  top: 0;
+}
+
+.app-shell.with-left-menu {
+  position: relative;
 }
 
 .brand {
@@ -62,6 +71,60 @@ body {
 .sidebar .nav-link:hover {
   background: #1e293b;
   color: white;
+}
+
+.sidebar-group {
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+  padding-top: 8px;
+}
+
+.sidebar-group-title {
+  font-weight: 700;
+}
+
+.sidebar-submenu {
+  margin-top: 4px;
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.sidebar-sub-link {
+  font-size: 0.92rem;
+  color: #b8cae9;
+}
+
+.app-shell.with-left-menu .content-area {
+  width: min(1360px, 100%);
+}
+
+.body-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.page-content {
+  min-width: 0;
+}
+
+@media (max-width: 991px) {
+  .app-shell.with-left-menu {
+    position: static;
+  }
+
+  .app-shell.with-left-menu .sidebar {
+    position: static;
+    width: 100%;
+    padding: 14px 12px;
+    height: auto;
+    overflow: visible;
+  }
+
+  .body-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .main-panel {
@@ -416,6 +479,171 @@ body {
   object-fit: cover;
   border-radius: 16px;
   border: 1px solid #cfdef6;
+}
+
+.school-progress-rail {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.school-progress-step {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 220px;
+  padding-right: 18px;
+}
+
+.school-progress-node {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 3px solid #c7d4ea;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  color: #ffffff;
+  position: relative;
+  z-index: 2;
+}
+
+.school-progress-node-completed {
+  background: #2385da;
+  border-color: #2385da;
+  box-shadow: 0 4px 10px rgba(35, 133, 218, 0.24);
+}
+
+.school-progress-node-current {
+  border-color: #7b8ea9;
+  background: #ffffff;
+}
+
+.school-progress-node-upcoming {
+  border-color: #b4c3d9;
+  background: #ffffff;
+}
+
+.school-progress-node-failed {
+  border-color: #dc3545;
+  background: #dc3545;
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.24);
+}
+
+.school-progress-connector {
+  position: absolute;
+  top: 13px;
+  left: 30px;
+  right: 10px;
+  height: 8px;
+  border-radius: 99px;
+  z-index: 1;
+}
+
+.school-progress-connector-filled {
+  background: #2385da;
+}
+
+.school-progress-connector-upcoming {
+  background: #d2dae8;
+}
+
+.school-progress-connector-failed {
+  background: #dc3545;
+}
+
+.school-progress-step-meta {
+  padding-top: 10px;
+}
+
+.school-progress-step-title {
+  font-weight: 700;
+  color: #1d2e4b;
+  font-size: 0.9rem;
+}
+
+.school-progress-step-description {
+  margin-top: 3px;
+  color: #60708f;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 768px) {
+  .school-progress-step {
+    min-width: 180px;
+    padding-right: 14px;
+  }
+
+  .school-progress-connector {
+    right: 8px;
+    height: 7px;
+  }
+
+  .school-progress-step-title {
+    font-size: 0.84rem;
+  }
+
+  .school-progress-step-description {
+    font-size: 0.74rem;
+  }
+}
+
+.registration-tabs {
+  display: inline-flex;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid #d7e3f5;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.registration-tab-btn {
+  border: 1px solid #c6d8f3;
+  background: #ffffff;
+  color: #2f4f80;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 10px;
+  padding: 0.55rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.registration-tab-btn:hover {
+  border-color: #92b3e8;
+  color: #1f3f73;
+}
+
+.registration-tab-btn.active {
+  border-color: #1d4ed8;
+  background: linear-gradient(145deg, #2457d8 0%, #1e40af 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(37, 87, 216, 0.26);
+}
+
+.registration-tab-panel {
+  border-radius: 16px;
+  animation: fade-slide 0.25s ease;
+}
+
+@media (max-width: 768px) {
+  .registration-tabs {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .registration-tab-btn {
+    width: 100%;
+    text-align: center;
+    padding: 0.5rem 0.6rem;
+  }
 }
 
 .landing-module-dot {

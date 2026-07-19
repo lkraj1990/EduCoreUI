@@ -24,6 +24,62 @@ const SchoolOnboardingProgress = ({ record, title = 'Registration Progress' }: S
   const status = getSchoolRegistrationStatus(record);
   const badgeClassName = statusClassMap[status] || 'bg-secondary';
 
+  const getNodeClassName = (state: string) => {
+    if (state === 'completed') {
+      return 'completed';
+    }
+
+    if (state === 'current') {
+      return 'current';
+    }
+
+    if (state === 'failed') {
+      return 'failed';
+    }
+
+    return 'upcoming';
+  };
+
+  const getNodeLabel = (state: string) => {
+    if (state === 'completed') {
+      return 'completed';
+    }
+
+    if (state === 'current') {
+      return 'current';
+    }
+
+    if (state === 'failed') {
+      return 'failed';
+    }
+
+    return 'upcoming';
+  };
+
+  const getNodeIcon = (state: string) => {
+    if (state === 'completed') {
+      return '✓';
+    }
+
+    if (state === 'failed') {
+      return '!';
+    }
+
+    return '';
+  };
+
+  const getConnectorClassName = (leftState: string, rightState: string) => {
+    if (leftState === 'failed' || rightState === 'failed') {
+      return 'failed';
+    }
+
+    if (leftState === 'completed' || rightState === 'current') {
+      return 'filled';
+    }
+
+    return 'upcoming';
+  };
+
   return (
     <div className="card shadow-sm border-0 h-100">
       <div className="card-body p-4">
@@ -35,29 +91,35 @@ const SchoolOnboardingProgress = ({ record, title = 'Registration Progress' }: S
           <span className={`badge ${badgeClassName}`}>{status}</span>
         </div>
 
-        <div className="progress mb-3" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
-          <div
-            className={`progress-bar ${status === 'Rejected' || status === 'Payment Failed' ? 'bg-danger' : 'bg-primary'}`}
-            style={{ width: `${progress}%` }}
-          >
-            {progress}%
-          </div>
+        <div className="school-progress-rail" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+          {steps.map((step, index) => {
+            const nodeClassName = getNodeClassName(step.state);
+            const nodeLabel = getNodeLabel(step.state);
+            const icon = getNodeIcon(step.state);
+            const nextStep = steps[index + 1];
+            const connectorClassName = nextStep
+              ? getConnectorClassName(step.state, nextStep.state)
+              : '';
+
+            return (
+              <div key={step.key} className="school-progress-step">
+                <div className={`school-progress-node school-progress-node-${nodeClassName}`} aria-label={`${step.title} ${nodeLabel}`}>
+                  <span>{icon}</span>
+                </div>
+                <div className="school-progress-step-meta">
+                  <p className="school-progress-step-title mb-0">{step.title}</p>
+                  <p className="school-progress-step-description mb-0">{step.description}</p>
+                </div>
+                {nextStep ? <div className={`school-progress-connector school-progress-connector-${connectorClassName}`} aria-hidden="true" /> : null}
+              </div>
+            );
+          })}
         </div>
 
-        <div className="row g-3">
-          {steps.map((step) => (
-            <div key={step.key} className="col-md-4">
-              <div className={`border rounded-3 h-100 p-3 ${step.state === 'completed' ? 'border-success bg-success-subtle' : step.state === 'failed' ? 'border-danger bg-danger-subtle' : step.state === 'current' ? 'border-primary bg-primary-subtle' : 'border-light-subtle bg-light'}`}>
-                <div className="d-flex justify-content-between align-items-center gap-2 mb-2">
-                  <span className="fw-semibold">{step.title}</span>
-                  <span className={`badge ${step.state === 'completed' ? 'bg-success' : step.state === 'failed' ? 'bg-danger' : step.state === 'current' ? 'bg-primary' : 'bg-secondary'}`}>
-                    {step.state}
-                  </span>
-                </div>
-                <p className="text-muted small mb-0">{step.description}</p>
-              </div>
-            </div>
-          ))}
+        <div className="d-flex justify-content-end mt-2">
+          <div className="small text-muted">
+            <strong>{progress}%</strong> completed
+          </div>
         </div>
       </div>
     </div>

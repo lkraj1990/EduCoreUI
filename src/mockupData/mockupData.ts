@@ -52,7 +52,7 @@ export const navItems = [
   { to: '/plans', label: 'Create Plan' },
   { to: '/tenant-management', label: 'Tenant Mgmt' },
   { to: '/school-registration', label: 'School Registration' },
-  { to: '/school-admin', label: 'School Admin' },
+  { to: '/school-admin', label: 'Dashboard' },
   { to: '/students', label: 'Student Mgmt' },
   { to: '/staff', label: 'Staff Mgmt' },
   { to: '/attendance', label: 'Attendance' },

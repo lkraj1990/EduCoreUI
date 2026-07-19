@@ -50,7 +50,8 @@ export const BaseLinks: RoleBasedLinks[] = [
     IsActive: true,
     Links: [
       { DisplayName: 'Home', Link: '/' },
-      { DisplayName: 'School Desk', Link: '/school-admin' },
+      { DisplayName: 'Dashboard', Link: '/school-admin' },
+      { DisplayName: 'MasterData', Link: '/master-data' },
       { DisplayName: 'Students', Link: '/students' },
       { DisplayName: 'Staff', Link: '/staff' },
       { DisplayName: 'Attendance', Link: '/attendance' },
@@ -65,6 +66,7 @@ export const BaseLinks: RoleBasedLinks[] = [
     Links: [
       { DisplayName: 'Home', Link: '/' },
       { DisplayName: 'Teaching Hub', Link: '/teacher-portal' },
+      { DisplayName: 'MasterData', Link: '/master-data' },
       { DisplayName: 'Attendance', Link: '/attendance' },
       { DisplayName: 'Exams', Link: '/exams' },
       { DisplayName: 'Reports', Link: '/reports' },
@@ -76,6 +78,7 @@ export const BaseLinks: RoleBasedLinks[] = [
     Links: [
       { DisplayName: 'Home', Link: '/' },
       { DisplayName: 'My Learning', Link: '/student-portal' },
+      { DisplayName: 'MasterData', Link: '/master-data' },
       { DisplayName: 'Fees', Link: '/fees' },
       { DisplayName: 'Exams', Link: '/exams' },
       { DisplayName: 'Reports', Link: '/reports' },
@@ -87,6 +90,7 @@ export const BaseLinks: RoleBasedLinks[] = [
     Links: [
       { DisplayName: 'Home', Link: '/' },
       { DisplayName: 'Parent View', Link: '/parent-portal' },
+      { DisplayName: 'MasterData', Link: '/master-data' },
       { DisplayName: 'Fees', Link: '/fees' },
       { DisplayName: 'Reports', Link: '/reports' },
     ],

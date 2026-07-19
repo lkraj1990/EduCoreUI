@@ -1,5 +1,6 @@
 export { API_BASE_URL } from './apiConfig';
 export { ApiError, apiClient } from './apiClient';
+export { authService } from './authService';
 export {
 	AUTH_TOKEN_STORAGE_KEY,
 	USER_STORAGE_KEY,

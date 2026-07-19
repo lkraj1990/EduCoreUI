@@ -1,6 +1,6 @@
 const SCHOOL_ONBOARDING_STORAGE_KEY = 'educore-school-onboarding';
 
-export type SchoolPaymentStatus = 'pending' | 'complete' | 'failed';
+export type SchoolPaymentStatus = 'initiated' | 'complete' | 'failed';
 export type SchoolApprovalStatus = 'pending' | 'approved' | 'rejected';
 
 export interface SchoolOnboardingRecord {
@@ -41,7 +41,7 @@ export const normalizeSchoolPaymentStatus = (status?: string): SchoolPaymentStat
     return 'failed';
   }
 
-  return 'pending';
+  return 'initiated';
 };
 
 const canUseStorage = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
@@ -86,10 +86,6 @@ export const getSchoolRegistrationStatus = (record?: Partial<SchoolOnboardingRec
     return 'Requested';
   }
 
-  if (record.requestStatus) {
-    return String(record.requestStatus);
-  }
-
   if (record.approvalStatus === 'approved') {
     return 'Approved';
   }
@@ -104,6 +100,10 @@ export const getSchoolRegistrationStatus = (record?: Partial<SchoolOnboardingRec
 
   if (record.paymentStatus === 'failed') {
     return 'Payment Failed';
+  }
+
+  if (record.requestStatus) {
+    return String(record.requestStatus);
   }
 
   return 'Requested';
@@ -206,16 +206,22 @@ export const schoolOnboardingService = {
   upsertFromSchoolRequest(payload: Partial<SchoolOnboardingRecord>) {
     const currentRecord = payload.schoolRequestId ? this.getBySchoolRequestId(String(payload.schoolRequestId)) : null;
 
+    const resolvedPaymentStatus = normalizeSchoolPaymentStatus(
+      payload.paymentStatus || currentRecord?.paymentStatus || 'initiated',
+    );
+
+    const resolvedApprovalStatus = (payload.approvalStatus || currentRecord?.approvalStatus || 'pending') as SchoolApprovalStatus;
+
     return upsertRecord(buildBaseRecord({
       ...currentRecord,
       ...payload,
       schoolRequestId: payload.schoolRequestId || currentRecord?.schoolRequestId,
-      paymentStatus: currentRecord?.paymentStatus || payload.paymentStatus || 'pending',
-      approvalStatus: currentRecord?.approvalStatus || payload.approvalStatus || 'pending',
-      paymentReference: currentRecord?.paymentReference || payload.paymentReference || '',
-      paymentFailedReason: currentRecord?.paymentFailedReason || payload.paymentFailedReason || '',
-      reviewedAt: currentRecord?.reviewedAt || payload.reviewedAt || '',
-      reviewedBy: currentRecord?.reviewedBy || payload.reviewedBy || '',
+      paymentStatus: resolvedPaymentStatus,
+      approvalStatus: resolvedApprovalStatus,
+      paymentReference: payload.paymentReference || currentRecord?.paymentReference || '',
+      paymentFailedReason: payload.paymentFailedReason || currentRecord?.paymentFailedReason || '',
+      reviewedAt: payload.reviewedAt || currentRecord?.reviewedAt || '',
+      reviewedBy: payload.reviewedBy || currentRecord?.reviewedBy || '',
       completionPercent: payload.completionPercent ?? currentRecord?.completionPercent ?? 0,
       paymentStartedAt: payload.paymentStartedAt || currentRecord?.paymentStartedAt || '',
       paymentCompletedAt: payload.paymentCompletedAt || currentRecord?.paymentCompletedAt || '',

@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterSchoolPage from '../pages/auth/RegisterSchoolPage';
 import SchoolRegistrationPaymentPage from '../pages/auth/SchoolRegistrationPaymentPage';
+import SchoolPaymentGatewayPage from '../pages/auth/SchoolPaymentGatewayPage';
 import PlanDetailsPage from '../pages/auth/PlanDetailsPage';
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import PricingPage from '../pages/auth/PricingPage';
@@ -31,6 +32,7 @@ import ParentPortalPage from '../pages/parent/ParentPortalPage';
 import ProfilePage from '../pages/dashboard/ProfilePage';
 import AccessDeniedPage from '../pages/shared/AccessDeniedPage';
 import ModuleDescriptionPage from '../pages/shared/ModuleDescriptionPage';
+import MasterDataPage from '../pages/admin/master-data/MasterDataPage';
 import ProtectedRoute from './ProtectedRoute';
 import { BaseLinks, Roles } from '../components/LinkRowData';
 
@@ -39,6 +41,8 @@ const activeRoleLinks = BaseLinks.filter((entry) => entry.IsActive);
 const allAuthenticatedRoles = activeRoleLinks
   .filter((entry) => entry.RoleName !== Roles.Guest)
   .map((entry) => entry.RoleName);
+
+const schoolEcosystemRoles = [Roles.SchoolAdmin, Roles.Teacher, Roles.Student, Roles.Parent];
 
 const resolveAllowedRoles = (authPath: string) => {
   const normalizedPath = authPath.toLowerCase();
@@ -67,6 +71,7 @@ const publicRoutes = [
   { path: '/login', element: <LoginPage /> },
   { path: '/register-school', element: <RegisterSchoolPage /> },
   { path: '/register-school/:schoolId/payment', element: <SchoolRegistrationPaymentPage /> },
+  { path: '/register-school/:schoolId/payment/gateway', element: <SchoolPaymentGatewayPage /> },
   { path: '/register-school/plan-details', element: <PlanDetailsPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/pricing', element: <PricingPage /> },
@@ -98,6 +103,10 @@ const protectedRoutes = [
   { path: '/teacher-portal', element: <TeacherPortalPage />, allowedRoles: resolveAllowedRoles('/teacher-portal') },
   { path: '/student-portal', element: <StudentPortalPage />, allowedRoles: resolveAllowedRoles('/student-portal') },
   { path: '/parent-portal', element: <ParentPortalPage />, allowedRoles: resolveAllowedRoles('/parent-portal') },
+  { path: '/master-data', element: <MasterDataPage />, allowedRoles: schoolEcosystemRoles },
+  { path: '/master-data/session', element: <MasterDataPage />, allowedRoles: schoolEcosystemRoles },
+  { path: '/master-data/class', element: <MasterDataPage />, allowedRoles: schoolEcosystemRoles },
+  { path: '/master-data/section', element: <MasterDataPage />, allowedRoles: schoolEcosystemRoles },
 ];
 
 const AppRoutes = () => {
